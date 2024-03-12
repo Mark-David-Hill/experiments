@@ -1,0 +1,38 @@
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+.game-board-wrapper {
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  // display: grid;
+  width: 500px;
+  height: 500px;
+  background-color: azure;
+  // grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  // grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+
+  .player-space {
+    border: 2px solid rgb(194, 194, 194);
+  }
+}
+
+.game-row {
+  display: flex;
+
+  div {
+    border: 2px solid black;
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.color-buttons-wrapper {
+  display: flex;
+  margin-top: 20px;
+  button {
+    padding: 3em;
+  }
+}
