@@ -17,9 +17,9 @@ body {
   color: $dark-mode-light;
   background-color: rgb(39, 39, 39);
 
-  button {
-    @include dark-link-standard;
-  }
+  // button {
+  //   @include dark-link-standard;
+  // }
 
   form {
     input,
@@ -131,32 +131,40 @@ body {
 .color-buttons-wrapper {
   @include flex-col-center;
   margin-top: 20px;
+
   button {
     padding: 3em;
+
+    &:disabled {
+      border-color: white;
+    }
   }
+
   button.color1 {
     background-color: red;
   }
+
   button.color2 {
     background-color: orange;
   }
+
   button.color3 {
     background-color: yellow;
   }
+
   button.color4 {
     background-color: green;
   }
+
   button.color5 {
     background-color: blue;
   }
+
   button.color6 {
     background-color: indigo;
   }
+
   button.color7 {
     background-color: violet;
   }
-}
-
-.p1 {
-  border: 1px solid white;
 }

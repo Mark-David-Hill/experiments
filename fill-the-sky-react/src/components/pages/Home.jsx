@@ -12,8 +12,8 @@ export default function Home() {
     }
   }
 
-  const rowCount = 15;
-  const colCount = 15;
+  const rowCount = 12;
+  const colCount = 12;
 
   const changeColor = (newColor) => {
     const getAdjacentSpaces = (coordinates) => {
@@ -111,13 +111,41 @@ export default function Home() {
           })}
       </div>
       <div className="color-buttons-wrapper">
-        <button className="color1" onClick={() => changeColor(1)}></button>
-        <button className="color2" onClick={() => changeColor(2)}></button>
-        <button className="color3" onClick={() => changeColor(3)}></button>
-        <button className="color4" onClick={() => changeColor(4)}></button>
-        <button className="color5" onClick={() => changeColor(5)}></button>
-        <button className="color6" onClick={() => changeColor(6)}></button>
-        <button className="color7" onClick={() => changeColor(7)}></button>
+        <button
+          className="color1"
+          disabled={currentP1Color === 1 ? true : false}
+          onClick={() => changeColor(1)}
+        ></button>
+        <button
+          className="color2"
+          disabled={currentP1Color === 2 ? true : false}
+          onClick={() => changeColor(2)}
+        ></button>
+        <button
+          className="color3"
+          disabled={currentP1Color === 3 ? true : false}
+          onClick={() => changeColor(3)}
+        ></button>
+        <button
+          className="color4"
+          disabled={currentP1Color === 4 ? true : false}
+          onClick={() => changeColor(4)}
+        ></button>
+        <button
+          className="color5"
+          disabled={currentP1Color === 5 ? true : false}
+          onClick={() => changeColor(5)}
+        ></button>
+        <button
+          className="color6"
+          disabled={currentP1Color === 6 ? true : false}
+          onClick={() => changeColor(6)}
+        ></button>
+        <button
+          className="color7"
+          disabled={currentP1Color === 7 ? true : false}
+          onClick={() => changeColor(7)}
+        ></button>
       </div>
     </div>
   );
