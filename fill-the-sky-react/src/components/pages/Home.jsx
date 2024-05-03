@@ -12,8 +12,8 @@ export default function Home() {
     }
   }
 
-  const rowCount = 5;
-  const colCount = 5;
+  const rowCount = 15;
+  const colCount = 15;
 
   const changeColor = (newColor) => {
     const getAdjacentSpaces = (coordinates) => {
