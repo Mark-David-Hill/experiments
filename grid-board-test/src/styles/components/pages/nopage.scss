@@ -1,0 +1,5 @@
+.nopage-container {
+  @include flex-col-center;
+  margin-top: 100px;
+  padding: 40px;
+}
