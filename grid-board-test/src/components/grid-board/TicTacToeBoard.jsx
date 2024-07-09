@@ -1,31 +1,48 @@
-import { useState } from "react";
 import React from "react";
+import { useState } from "react";
+
 import GridBoard from "./GridBoard";
 
+import getAdjacentCoordinates from "../../util/getAdjacentCoordinates";
+
 const TicTacToeBoard = () => {
-  const rowCount = 3;
-  const colCount = 3;
-  const initialGridData = Array.from({ length: rowCount }, () =>
-    Array(colCount).fill("")
-  );
+  const initialGridData = [
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""],
+  ];
 
   const [gridData, setGridData] = useState(initialGridData);
-  const [turn, setTurn] = useState("x");
+  const [currentTurn, setCurrentTurn] = useState("x");
+  const [xWins, setXWins] = useState(0);
+  const [oWins, setOWins] = useState(0);
 
   const handleCellClick = (rowIndex, colIndex) => {
-    if (gridData[rowIndex][colIndex] !== "") return; // Ignore if cell is already filled
-
-    const newGridData = gridData.map((row, rowId) =>
-      row.map((cell, colId) =>
-        rowId === rowIndex && colId === colIndex ? turn : cell
+    console.log(
+      getAdjacentCoordinates(
+        [rowIndex, colIndex],
+        gridData.length,
+        gridData[0].length
       )
     );
+    if (gridData[rowIndex][colIndex] !== "") return;
 
+    const newGridData = gridData;
+    newGridData[rowIndex][colIndex] = currentTurn;
     setGridData(newGridData);
-    setTurn(turn === "x" ? "o" : "x");
+    setCurrentTurn(currentTurn === "x" ? "o" : "x");
   };
 
-  return <GridBoard gridData={gridData} onCellClick={handleCellClick} />;
+  return (
+    <div>
+      <div>
+        <p>X Wins: {xWins}</p>
+        <p>O Wins: {oWins}</p>
+        <p>Current Turn: {currentTurn}</p>
+      </div>
+      <GridBoard gridData={gridData} onCellClick={handleCellClick} />
+    </div>
+  );
 };
 
 export default TicTacToeBoard;

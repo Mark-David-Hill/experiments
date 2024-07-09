@@ -1,26 +1,24 @@
 import React from "react";
-import GridCell from "./GridCell";
+
+import GridRow from "./GridRow";
 
 const GridBoard = ({ gridData, onCellClick }) => {
   const rowCount = gridData.length;
   const colCount = gridData[0].length;
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${colCount}, 1fr)`,
-      }}
-    >
-      {gridData.map((row, rowIndex) =>
-        row.map((cell, colIndex) => (
-          <GridCell
-            key={`${rowIndex}-${colIndex}`}
-            value={cell}
-            onClick={() => onCellClick(rowIndex, colIndex)}
-          />
-        ))
-      )}
+    <div>
+      {gridData &&
+        gridData.map((row, rowIndex) => {
+          return (
+            <GridRow
+              key={rowIndex}
+              rowData={row}
+              rowIndex={rowIndex}
+              onCellClick={onCellClick}
+            />
+          );
+        })}
     </div>
   );
 };
