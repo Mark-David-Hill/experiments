@@ -1,24 +1,16 @@
 export default function getAdjacentCoordinates(
-  sourceCoordinates,
+  [rowIndex, colIndex],
   rowCount,
   colCount
 ) {
-  const [rowIndex, colIndex] = sourceCoordinates;
+  const directionShifts = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
 
-  let adjacentCoordinates = [];
-
-  if (rowIndex - 1 >= 0) {
-    adjacentCoordinates.push([rowIndex - 1, colIndex]);
-  }
-  if (rowIndex + 1 <= rowCount - 1) {
-    adjacentCoordinates.push([rowIndex + 1, colIndex]);
-  }
-  if (colIndex - 1 >= 0) {
-    adjacentCoordinates.push([rowIndex, colIndex - 1]);
-  }
-  if (colIndex + 1 <= colCount - 1) {
-    adjacentCoordinates.push([rowIndex, colIndex + 1]);
-  }
-
-  return adjacentCoordinates;
+  return directionShifts
+    .map(([rowShift, colShift]) => [rowIndex + rowShift, colIndex + colShift])
+    .filter(([r, c]) => r >= 0 && r < rowCount && c >= 0 && c < colCount);
 }
