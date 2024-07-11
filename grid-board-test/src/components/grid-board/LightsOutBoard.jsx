@@ -1,9 +1,7 @@
 import React from "react";
 import { useState } from "react";
 
-import GridBoard from "./GridBoard";
-
-import getAdjacentCoordinates from "../../util/getAdjacentCoordinates";
+import { GridBoard, getAdjacentCoordinates } from "./GridBoard";
 
 const TicTacToeBoard = () => {
   const initialGridData = [
@@ -26,7 +24,7 @@ const TicTacToeBoard = () => {
     );
 
     adjacentCoords.forEach((coord) => {
-      console.log(gridData[coord[0]][coord[1]]);
+      console.log(coord);
     });
 
     const newGridData = gridData;
