@@ -8,6 +8,7 @@ export default function Home() {
       <div className="game-board-wrapper">
         {/* <TicTacToeBoard /> */}
         <LightsOutBoard />
+        <TicTacToeBoard />
       </div>
     </div>
   );

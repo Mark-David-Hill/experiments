@@ -1,9 +1,10 @@
 import React from "react";
 
-const GridCell = ({ value, onClick }) => {
+const GridCell = ({ cellData, onClick }) => {
   return (
     <div
       onClick={onClick}
+      className={cellData.classNames}
       style={{
         width: "50px",
         height: "50px",
@@ -14,7 +15,7 @@ const GridCell = ({ value, onClick }) => {
         cursor: "pointer",
       }}
     >
-      {value}
+      {cellData.text}
     </div>
   );
 };

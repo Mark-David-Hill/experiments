@@ -9,7 +9,8 @@ const GridRow = ({ rowData, rowIndex, onCellClick }) => {
           return (
             <GridCell
               key={colIndex}
-              value={cell}
+              cellData={cell}
+              className={cell.classNames}
               onClick={() => onCellClick(rowIndex, colIndex)}
             />
           );

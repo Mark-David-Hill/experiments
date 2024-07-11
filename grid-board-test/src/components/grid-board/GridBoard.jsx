@@ -39,3 +39,12 @@ export function getAdjacentCoordinates(
     .map(([rowShift, colShift]) => [rowIndex + rowShift, colIndex + colShift])
     .filter(([r, c]) => r >= 0 && r < rowCount && c >= 0 && c < colCount);
 }
+
+export class CellTemplate {
+  constructor(text, classNames, isExplored = false, canExplore = true) {
+    this.text = text;
+    this.classNames = classNames;
+    this.isExplored = isExplored;
+    this.canExplore = canExplore;
+  }
+}

@@ -1,34 +1,42 @@
 import React from "react";
 import { useState } from "react";
 
-import { GridBoard, getAdjacentCoordinates } from "./GridBoard";
+import { GridBoard, getAdjacentCoordinates, CellTemplate } from "./GridBoard";
+
+const baseCell = new CellTemplate("", "lit");
 
 const TicTacToeBoard = () => {
   const initialGridData = [
-    ["", "", "", "", ""],
-    ["", "", "", "", ""],
-    ["", "", "", "", ""],
-    ["", "", "", "", ""],
-    ["", "", "", "", ""],
+    [baseCell, baseCell, baseCell, baseCell, baseCell],
+    [baseCell, baseCell, baseCell, baseCell, baseCell],
+    [baseCell, baseCell, baseCell, baseCell, baseCell],
+    [baseCell, baseCell, baseCell, baseCell, baseCell],
+    [baseCell, baseCell, baseCell, baseCell, baseCell],
   ];
 
   const [gridData, setGridData] = useState(initialGridData);
 
   const handleCellClick = (rowIndex, colIndex) => {
-    if (gridData[rowIndex][colIndex] !== "") return;
-
-    const adjacentCoords = getAdjacentCoordinates(
+    const cellsToToggle = getAdjacentCoordinates(
       [rowIndex, colIndex],
       gridData.length,
       gridData[0].length
     );
 
-    adjacentCoords.forEach((coord) => {
-      console.log(coord);
-    });
+    cellsToToggle.push([rowIndex, colIndex]);
 
-    const newGridData = gridData;
-    // newGridData[rowIndex][colIndex] = currentTurn;
+    const newGridData = gridData.map((row, rowId) =>
+      row.map((cell, cellId) => {
+        if (cellsToToggle.some(([r, c]) => r === rowId && c === cellId)) {
+          return new CellTemplate(
+            cell.text,
+            cell.classNames === "lit" ? "unlit" : "lit"
+          );
+        }
+        return cell;
+      })
+    );
+
     setGridData(newGridData);
   };
 

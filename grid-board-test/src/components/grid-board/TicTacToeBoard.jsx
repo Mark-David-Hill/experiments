@@ -1,13 +1,15 @@
 import React from "react";
 import { useState } from "react";
 
-import { GridBoard, getAdjacentCoordinates } from "./GridBoard";
+import { GridBoard, getAdjacentCoordinates, CellTemplate } from "./GridBoard";
+
+const baseCell = new CellTemplate("", "");
 
 const TicTacToeBoard = () => {
   const initialGridData = [
-    ["", "", ""],
-    ["", "", ""],
-    ["", "", ""],
+    [baseCell, baseCell, baseCell],
+    [baseCell, baseCell, baseCell],
+    [baseCell, baseCell, baseCell],
   ];
 
   const [gridData, setGridData] = useState(initialGridData);
@@ -16,17 +18,17 @@ const TicTacToeBoard = () => {
   const [oWins, setOWins] = useState(0);
 
   const handleCellClick = (rowIndex, colIndex) => {
-    console.log(
-      getAdjacentCoordinates(
-        [rowIndex, colIndex],
-        gridData.length,
-        gridData[0].length
-      )
-    );
-    if (gridData[rowIndex][colIndex] !== "") return;
+    if (gridData[rowIndex][colIndex].text !== "") return;
 
-    const newGridData = gridData;
-    newGridData[rowIndex][colIndex] = currentTurn;
+    const newGridData = gridData.map((row, rowId) =>
+      row.map((cell, cellId) => {
+        if (rowId === rowIndex && cellId === colIndex) {
+          return new CellTemplate(currentTurn, "");
+        }
+        return cell;
+      })
+    );
+
     setGridData(newGridData);
     setCurrentTurn(currentTurn === "x" ? "o" : "x");
   };
