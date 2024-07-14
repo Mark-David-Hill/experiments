@@ -23,6 +23,25 @@ export function GridBoard({ gridData, onCellClick }) {
   );
 }
 
+export function initializeGridData(rowCount, colCount, cellData) {
+  return Array.from({ length: rowCount }, () =>
+    Array.from({ length: colCount }, () => cellData)
+  );
+}
+
+export function updatedBoardCell(gridData, cellToUpdate, newCellData) {
+  const newGridData = gridData.map((row, rowId) =>
+    row.map((cell, cellId) => {
+      if (cellToUpdate[0] === rowId && cellToUpdate[1] === cellId) {
+        return newCellData;
+      }
+      return cell;
+    })
+  );
+
+  return newGridData;
+}
+
 export function getAdjacentCoordinates(
   [rowIndex, colIndex],
   rowCount,
