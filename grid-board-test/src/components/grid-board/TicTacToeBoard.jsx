@@ -1,13 +1,13 @@
 import React from "react";
 import { useState } from "react";
 
+import { GridBoard, CellTemplate } from "./GridBoard";
+
 import {
-  GridBoard,
   initializeGridData,
   getAdjacentCoordinates,
   updatedBoardCell,
-  CellTemplate,
-} from "./GridBoard";
+} from "../../utils/gridUtils";
 
 const TicTacToeBoard = () => {
   const initialGridData = initializeGridData(3, 3, new CellTemplate("", ""));

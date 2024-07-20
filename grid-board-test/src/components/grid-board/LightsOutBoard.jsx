@@ -1,13 +1,13 @@
 import React from "react";
 import { useState } from "react";
 
+import { GridBoard, CellTemplate } from "./GridBoard";
+
 import {
-  GridBoard,
-  getAdjacentCoordinates,
   initializeGridData,
+  getAdjacentCoordinates,
   updatedBoardCell,
-  CellTemplate,
-} from "./GridBoard";
+} from "../../utils/gridUtils";
 
 const LightsOutBoard = () => {
   const initialGridData = initializeGridData(5, 5, new CellTemplate("", "lit"));
