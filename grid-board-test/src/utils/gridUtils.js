@@ -136,10 +136,30 @@ export function getReverseDiagonals(gridData) {
   // return reverseDiagonalsCoordinates;
 }
 
-// export function getMaxDiagonalLineLength(gridData, targetText) {
-//   let maxLineCount = 0;
+export function getMaxDiagonalLineLength(gridData, targetText) {
+  const mainDiagonals = getMainDiagonals(gridData);
+  console.log("main diagonals", mainDiagonals);
 
-//   for (let i = 0; i < gridData.length; i++) {
-//     let lineCount = 0;
-//   }
-// }
+  let maxLineCount = 0;
+
+  for (let i = 0; i < mainDiagonals.length; i++) {
+    let lineCount = 0;
+    const currentCoordinates = mainDiagonals[i];
+
+    for (let j = 0; j < currentCoordinates.length; j++) {
+      const [rowIndex, colIndex] = currentCoordinates[j];
+
+      if (gridData[rowIndex][colIndex].text === targetText) {
+        lineCount += 1;
+      } else {
+        lineCount = 0;
+      }
+
+      if (lineCount > maxLineCount) {
+        maxLineCount = lineCount;
+      }
+    }
+  }
+
+  return maxLineCount;
+}

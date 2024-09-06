@@ -8,7 +8,7 @@ import {
   updatedBoardCell,
   getMaxRowLineLength,
   getMaxColLineLength,
-  getMainDiagonals,
+  getMaxDiagonalLineLength,
 } from "../../utils/gridUtils";
 
 const TicTacToeBoard = () => {
@@ -24,14 +24,15 @@ const TicTacToeBoard = () => {
     setCurrentTurn("x");
     setGridData(initialGridData);
     setIsWinState(false);
-    console.log("Diagonal Coordinates:");
-    console.log(getMainDiagonals(gridData));
+    // console.log("Diagonal Coordinates:");
+    // console.log(getMainDiagonals(gridData));
   };
 
   const checkForWin = (gridData, currentTurn) => {
     const maxLineLength = Math.max(
       getMaxRowLineLength(gridData, currentTurn),
-      getMaxColLineLength(gridData, currentTurn)
+      getMaxColLineLength(gridData, currentTurn),
+      getMaxDiagonalLineLength(gridData, currentTurn)
     );
     if (maxLineLength === 3) {
       console.log(`${currentTurn} wins!`);
