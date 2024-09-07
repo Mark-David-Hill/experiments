@@ -24,8 +24,6 @@ const TicTacToeBoard = () => {
     setCurrentTurn("x");
     setGridData(initialGridData);
     setIsWinState(false);
-    // console.log("Diagonal Coordinates:");
-    // console.log(getMainDiagonals(gridData));
   };
 
   const checkForWin = (gridData, currentTurn) => {

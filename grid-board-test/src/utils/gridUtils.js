@@ -138,21 +138,24 @@ export function getReverseDiagonals(gridData) {
 
 export function getMaxDiagonalLineLength(gridData, targetText) {
   const mainDiagonals = getMainDiagonals(gridData);
-  console.log("main diagonals", mainDiagonals);
+  const reverseDiagonals = [];
+  const allDiagonals = [...mainDiagonals, ...reverseDiagonals];
 
   let maxLineCount = 0;
 
-  for (let i = 0; i < mainDiagonals.length; i++) {
+  for (let i = 0; i < allDiagonals.length; i++) {
     let lineCount = 0;
-    const currentCoordinates = mainDiagonals[i];
+    const currentCoordinates = allDiagonals[i];
 
-    for (let j = 0; j < currentCoordinates.length; j++) {
-      const [rowIndex, colIndex] = currentCoordinates[j];
+    for (
+      let coordIndex = 0;
+      coordIndex < currentCoordinates.length;
+      coordIndex++
+    ) {
+      const [rowIndex, colIndex] = currentCoordinates[coordIndex];
 
       if (gridData[rowIndex][colIndex].text === targetText) {
         lineCount += 1;
-      } else {
-        lineCount = 0;
       }
 
       if (lineCount > maxLineCount) {
