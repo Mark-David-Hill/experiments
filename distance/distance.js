@@ -30,3 +30,10 @@ alert(
     haversine(byu_provo_coord, byu_idaho_coord) +
     " miles"
 );
+
+// Takeaways - this gets the distance of a straight line between 2 points. Google Maps does it differently,
+// where it's the total distance travelled on the route between 2 points.
+// Also, the only free Geocoding services I've seen so far have a limited amount of requests at the free tier.
+// Radar
+// Free for up to 100,000 requests per month, and then $0.50 per 1,000 requests after that.
+// Radar offers volume discounts and claims to be up to 90% cheaper than Google Maps
