@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 
 function App() {
+  const [petName, setPetName] = useState("Marshmallow");
   const [happiness, setHappiness] = useState(10);
   const [hunger, setHunger] = useState(0);
   const [stress, setStress] = useState(0);
@@ -11,32 +12,65 @@ function App() {
   const [speed, setSpeed] = useState(5);
   const [stamina, setStamina] = useState(5);
   const [intelligence, setIntelligence] = useState(5);
-  const [skill, setSkill] = useState(10);
   const [week, setWeek] = useState(1);
+  const [message, setMessage] = useState("What do you want to do this week?");
 
   const buyFood = () => {
     if (money >= 10) {
       setFood((prev) => prev + 1);
       setMoney((prev) => prev - 10);
+      setMessage(`You bought some food for ${petName}`);
+    } else {
+      setMessage("You don't have enough money");
     }
   };
 
   const play = () => {
     setStress((prevStress) => prevStress - 10);
     setHappiness((prevHappiness) => prevHappiness + 5);
+    setMessage(`You played with ${petName}. They look happy!`);
     weekPasses();
   };
 
-  const train = () => {
-    setSkill((prev) => prev + 10);
-    setStress((prev) => prev + 5);
+  const train = (stat) => {
+    switch (stat) {
+      case "strength":
+        setStrength((prev) => prev + 4);
+        break;
+      case "speed":
+        setSpeed((prev) => prev + 4);
+        break;
+      case "stamina":
+        setStamina((prev) => prev + 4);
+        break;
+      case "intelligence":
+        setIntelligence((prev) => prev + 4);
+        break;
+    }
+    setStress((prev) => prev + 2);
+    setMessage(
+      `You trained with ${petName}. Their ${
+        stat === "strength"
+          ? "strength"
+          : stat === "speed"
+          ? "speed"
+          : stat === "stamina"
+          ? "stamina"
+          : state === "intelligence"
+          ? "intelligence"
+          : "???"
+      } increased.`
+    );
     weekPasses();
   };
 
   const work = () => {
     setMoney((prev) => prev + 50);
     setHappiness((prev) => prev - 3);
-    setStress((prev) => stress + 3);
+    setStress((prev) => prev + 3);
+    setMessage(
+      `You spent the week working. ${petName} looks a little lonely, but you made $50`
+    );
     weekPasses();
   };
 
@@ -44,6 +78,7 @@ function App() {
     if (food > 0) {
       setFood((prev) => prev - 1);
       setHunger((prev) => (prev - 10 > 0 ? prev - 10 : 0));
+      setMessage(`You fed ${petName}`);
       setHappiness((prev) => prev + 1);
     }
   };
@@ -63,12 +98,22 @@ function App() {
     <>
       <h1>Marshmallow</h1>
       <h2>Week: {week}</h2>
-      <p>What do you want to do this week?</p>
+      <p>{message}</p>
       <div className="week-choice">
-        <button onClick={play}>Play with Marhsmallow</button>
-        <button onClick={train}>Train Marshmallow</button>
-        <button onClick={work}>Leave Marshmallow for Work</button>
+        <button onClick={play}>Play with {petName}</button>
+        <button onClick={work}>Leave {petName} for Work</button>
+        <div className="training-choices">
+          <button onClick={() => train("strength")}>Train Strength</button>
+          <button onClick={() => train("speed")}>Train Speed</button>
+          <button onClick={() => train("stamina")}>Train Stamina</button>
+          <button onClick={() => train("intelligence")}>Train Strength</button>
+        </div>
       </div>
+
+      <div className="message-wrapper">
+        <p>{}</p>
+      </div>
+
       <div className="card">
         <div className="stats">
           <p>Happiness: {happiness}</p>
@@ -76,14 +121,17 @@ function App() {
           <p>Stress: {stress}</p>
           <p>Money: {money}</p>
           <p>Food: {food}</p>
-          <p>Skill: {skill}</p>
+          <p>Strength: {strength}</p>
+          <p>Speed: {speed}</p>
+          <p>Stamina: {stamina}</p>
+          <p>Intelligence: {intelligence}</p>
         </div>
         <div
-          className="marshmallow"
+          className="pet"
           style={{ backgroundColor: "blue", width: "100px", height: "100px" }}
         ></div>
         <button onClick={buyFood}>Buy Food ($10)</button>
-        <button onClick={feed}>Feed Marshmallow</button>
+        <button onClick={feed}>Feed {petName}</button>
       </div>
     </>
   );
