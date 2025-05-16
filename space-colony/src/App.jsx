@@ -25,16 +25,27 @@ function App() {
     const startingPopulation = population;
     const startingFood = food;
     const startingHealth = health;
+    const startingMinerals = minerals;
     let foodProduced = 0;
+    let mineralsProduced = 0;
 
     // Phase 1: do action (e.g. farming)
-    setMessage("The colonists spend the month farming.");
+    if (action === "farm") {
+      setMessage("The colonists spend the month farming.");
+    } else if (action === "mine") {
+      setMessage("The colonists spend the month mining");
+    }
+
     await delay(2000);
 
     if (action === "farm") {
       foodProduced = startingPopulation * 2;
       setFood(startingFood + foodProduced);
       setMessage(`${foodProduced} food was produced.`);
+    } else if (action === "mine") {
+      mineralsProduced = startingPopulation;
+      setMinerals(startingMinerals + startingPopulation);
+      setMessage(`the colonists mined ${mineralsProduced} minerals.`);
     }
 
     // Phase 2: month passes
@@ -74,10 +85,12 @@ function App() {
       <h2>Month: {month}</h2>
       <p style={{ whiteSpace: "pre-wrap" }}>{message}</p>
       <div className="month-choice">
-        <button onClick={monthPasses} disabled={isLoading}>
-          Month passes
+        <button onClick={() => monthPasses("farm")} disabled={isLoading}>
+          Farm
         </button>
-        <button onClick={() => monthPasses("farm")}>Farm</button>
+        <button onClick={() => monthPasses("mine")} disabled={isLoading}>
+          Mine
+        </button>
       </div>
 
       <div className="card" style={{ width: "500px" }}>
