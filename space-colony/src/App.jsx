@@ -19,6 +19,36 @@ function App() {
   );
   const [isLoading, setIsLoading] = useState(false);
 
+  const getRandomInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  const populationChange = (health, population) => {
+    let modifier = 1;
+    let min = 0;
+    let max = 0;
+
+    if (health < 30) {
+      modifier = -1;
+      min = Math.floor(population * 0.2 * ((100 - health) / 100));
+      max = Math.floor(population * 0.4 * ((100 - health) / 100));
+    } else if (health < 50) {
+      modifier = -1;
+      min = Math.floor(population * 0.1 * ((100 - health) / 100));
+      max = Math.floor(population * 0.2 * ((100 - health) / 100));
+    } else if (health < 70) {
+      min = Math.floor(population * 0.01 * (health / 100));
+      max = Math.floor(population * 0.1 * (health / 100));
+    } else {
+      min = Math.floor(population * 0.1 * (health / 100));
+      max = Math.floor(population * 0.2 * (health / 100));
+    }
+
+    return modifier * getRandomInt(min, max);
+  };
+
   const monthPasses = async (action) => {
     setIsLoading(true);
 
@@ -30,20 +60,20 @@ function App() {
     let mineralsProduced = 0;
 
     // Phase 1: do action (e.g. farming)
-    if (action === "farm") {
-      setMessage("The colonists spend the month farming.");
-    } else if (action === "mine") {
-      setMessage("The colonists spend the month mining");
-    }
+    // if (action === "farm") {
+    //   setMessage("The colonists spend the month farming.");
+    // } else if (action === "mine") {
+    //   setMessage("The colonists spend the month mining");
+    // }
 
-    await delay(2000);
+    // await delay(2000);
 
     if (action === "farm") {
-      foodProduced = startingPopulation * 2;
+      foodProduced = Math.floor(startingPopulation * 2);
       setFood(startingFood + foodProduced);
       setMessage(`${foodProduced} food was produced.`);
     } else if (action === "mine") {
-      mineralsProduced = startingPopulation;
+      mineralsProduced = Math.floor(startingPopulation * 1.8);
       setMinerals(startingMinerals + startingPopulation);
       setMessage(`the colonists mined ${mineralsProduced} minerals.`);
     }
@@ -75,6 +105,10 @@ function App() {
       setFood(0);
     }
 
+    const popChange = populationChange(health, population);
+    console.log(popChange);
+
+    setPopulation((prev) => prev + popChange);
     setMonth((prev) => prev + 1);
     setIsLoading(false);
   };
