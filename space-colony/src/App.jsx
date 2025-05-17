@@ -14,10 +14,34 @@ function App() {
   const [maxPopulation, setMaxPopulation] = useState(1000);
   const [maxFood, setMaxFood] = useState(1000);
   const [maxMinerals, setMaxMinerals] = useState(1000);
+  const [buildings, setBuildings] = useState([]);
   const [message, setMessage] = useState(
     "What project do you want to start this month?"
   );
   const [isLoading, setIsLoading] = useState(false);
+
+  const buildingChoices = [
+    {
+      name: "Auto Farm",
+      cost: 500,
+      description: "Produces an additional 50 food every year",
+    },
+    {
+      name: "Grain Silo",
+      cost: 300,
+      description: "Increases the max amount of food storage by 500",
+    },
+    {
+      name: "Auto Mine",
+      cost: 700,
+      description: "Produces an additional 50 minerals year",
+    },
+    {
+      name: "Mineral Storehouse",
+      cost: 300,
+      description: "Increases the max amount of mineral storage by 500",
+    },
+  ];
 
   const getRandomInt = (min, max) => {
     min = Math.ceil(min);
@@ -47,6 +71,20 @@ function App() {
     }
 
     return modifier * getRandomInt(min, max);
+  };
+
+  const build = (building) => {
+    if (minerals > building.cost) {
+      setMessage(
+        `You spent ${building.cost} minerals and a ${building.name} was built.`
+      );
+      setBuildings((prev) => [...prev, building]);
+      monthPasses();
+    } else {
+      setMessage(
+        `You don't have enough minerals to build ${building.name}. It costs ${building.cost} minerals`
+      );
+    }
   };
 
   const monthPasses = async (action) => {
@@ -80,7 +118,7 @@ function App() {
 
     // Phase 2: month passes
     await delay(2000);
-    setMessage("A month passes...");
+    setMessage("A year passes...");
 
     // Phase 3: consumption & health
     await delay(2000);
@@ -88,6 +126,9 @@ function App() {
     const totalFood = startingFood + foodProduced;
     if (totalFood >= startingPopulation) {
       setFood((prev) => prev - startingPopulation);
+      if (health < 80) {
+        setHealth(startingHealth + 2);
+      }
       setMessage(
         `You had enough food for everyone. Food produced: ${foodProduced}. Food consumed: ${startingPopulation}.`
       );
@@ -125,6 +166,16 @@ function App() {
         <button onClick={() => monthPasses("mine")} disabled={isLoading}>
           Mine
         </button>
+        <div className="build-choice">
+          <p>Build:</p>
+          {buildingChoices.map((building) => {
+            return (
+              <button onClick={() => build(building)} disabled={isLoading}>
+                {building.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="card" style={{ width: "500px" }}>
@@ -142,6 +193,13 @@ function App() {
           max={maxMinerals}
           color="#2196f3"
         />
+      </div>
+
+      <h2>Buildings:</h2>
+      <div className="card">
+        {buildings.map((building) => {
+          return <p>{building.name}</p>;
+        })}
       </div>
     </>
   );
