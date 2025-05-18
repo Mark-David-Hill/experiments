@@ -16,7 +16,7 @@ function App() {
   const grainSiloBonus = 500;
   const mineralStorehouseBonus = 500;
 
-  const [month, setMonth] = useState(1);
+  const [year, setYear] = useState(1);
   const [population, setPopulation] = useState(100);
   const [health, setHealth] = useState(80);
   const [food, setFood] = useState(startingFood);
@@ -30,7 +30,7 @@ function App() {
 
   const [buildings, setBuildings] = useState([]);
   const [message, setMessage] = useState(
-    "What project do you want to start this month?"
+    "What project do you want the colonists to work on this year?"
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,32 +47,32 @@ function App() {
 
   // Passive effects when buildings change :contentReference[oaicite:2]{index=2}
   useEffect(() => {
-    let nf = startingMaxFood,
-      nm = startingMaxMinerals;
-    let fb = 0,
-      mb = 0;
+    let newFood = startingMaxFood;
+    let newMinerals = startingMaxMinerals;
+    let foodBonus = 0;
+    let mineralsBonus = 0;
 
     buildings.forEach((b) => {
       switch (b.name) {
         case "Grain Silo":
-          nf += grainSiloBonus;
+          newFood += grainSiloBonus;
           break;
         case "Mineral Storehouse":
-          nm += mineralStorehouseBonus;
+          newMinerals += mineralStorehouseBonus;
           break;
         case "Auto Farm":
-          fb += autoFarmBonus;
+          foodBonus += autoFarmBonus;
           break;
         case "Auto Mine":
-          mb += autoMineBonus;
+          mineralsBonus += autoMineBonus;
           break;
       }
     });
 
-    setMaxFood(nf);
-    setMaxMinerals(nm);
-    setFoodBonus(fb);
-    setMineralsBonus(mb);
+    setMaxFood(newFood);
+    setMaxMinerals(newMinerals);
+    setFoodBonus(foodBonus);
+    setMineralsBonus(mineralsBonus);
   }, [buildings]);
 
   const getRandomInt = (min, max) => {
@@ -88,97 +88,94 @@ function App() {
     return modifier * getRandomInt(min, max);
   };
 
-  // Build now only enqueues the building; cost handled in monthPasses :contentReference[oaicite:3]{index=3}
   const build = (building) => {
     if (minerals >= building.cost) {
       setBuildings((prev) => [...prev, building]);
       setMessage(`Building ${building.name}…`);
-      monthPasses("build", building.cost);
+      yearPasses("build", building.cost);
     } else {
       setMessage(`Not enough minerals for ${building.name}.`);
     }
   };
 
-  // Month logic now atomically handles cost + production + consumption :contentReference[oaicite:4]{index=4}
-  const monthPasses = async (action, buildingCost = 0) => {
+  const yearPasses = async (action, buildingCost = 0) => {
     setIsLoading(true);
 
-    // Start from current state
-    let nf = food;
-    let nm = minerals - buildingCost; // subtract cost here
-    let nh = health;
-    let np = population;
+    let newFood = food;
+    let newMinerals = minerals - buildingCost;
+    let newHealth = health;
+    let newPopulation = population;
 
     // 1) Action phase
     if (action === "farm") {
       const produced = Math.floor(population * 2);
-      nf += produced;
+      newFood += produced;
       setMessage(`Farmed ${produced} food.`);
       await delay(1000);
     } else if (action === "mine") {
       const produced = Math.floor(population * 1.8);
-      nm += produced;
+      newMinerals += produced;
       setMessage(`Mined ${produced} minerals.`);
       await delay(1000);
     }
 
     // 2) Passive bonuses
-    nf += foodBonus;
-    nm += mineralsBonus;
+    newFood += foodBonus;
+    newMinerals += mineralsBonus;
 
-    // 3) Consumption & health
-    if (nf >= np) {
-      nf -= np;
-      if (nh < 80) nh += 2;
-      setMessage(`Everyone fed`);
+    // 3) food and health change
+    if (newFood >= newPopulation) {
+      newFood -= newPopulation;
+      if (newHealth < 80) newHealth += 2;
+      setMessage(`There was enough food for everyone`);
     } else {
-      const loss = 5 + Math.floor(nh * 0.2);
-      nh = Math.max(0, nh - loss);
-      np -= 2 + Math.floor(np * 0.01);
-      nf = 0;
+      const loss = 5 + Math.floor(newHealth * 0.2);
+      newHealth = Math.max(0, newHealth - loss);
+      newPopulation -= 2 + Math.floor(newPopulation * 0.01);
+      newFood = 0;
       setMessage(
-        nh > 0
-          ? "Food shortfall: health down."
-          : "Critical shortage: people dying."
+        newHealth > 0
+          ? "There wasn't enough food for everyone."
+          : "Your colony's health is in critical condition. Citizens are dying."
       );
     }
 
     // 4) Population change
-    np += populationChange(nh, np);
+    newPopulation += populationChange(newHealth, newPopulation);
 
-    // Commit all updates together
-    setFood(nf);
-    setMinerals(nm);
-    setHealth(nh);
-    setPopulation(np);
-    setMonth((m) => m + 1);
+    setFood(newFood);
+    setMinerals(newMinerals);
+    setHealth(newHealth);
+    setPopulation(newPopulation);
+    setYear((m) => m + 1);
     setIsLoading(false);
   };
 
   return (
     <>
       <h1>Project Corix E8</h1>
-      <h2>Month: {month}</h2>
+      <h2>Year: {year}</h2>
       <p style={{ whiteSpace: "pre-wrap" }}>{message}</p>
 
-      <div className="month-choice">
-        <button onClick={() => monthPasses("farm")} disabled={isLoading}>
+      <div className="year-choice">
+        <button onClick={() => yearPasses("farm")} disabled={isLoading}>
           Farm
         </button>
-        <button onClick={() => monthPasses("mine")} disabled={isLoading}>
+        <button onClick={() => yearPasses("mine")} disabled={isLoading}>
           Mine
         </button>
         <div className="build-choice">
           <p>Build:</p>
           {buildingChoices.map((b) => (
             <button key={b.name} onClick={() => build(b)} disabled={isLoading}>
-              {b.name}
+              {b.name} ({b.cost})
             </button>
           ))}
         </div>
       </div>
 
       <div className="card" style={{ width: 500 }}>
+        <StatBar label="Health" value={health} max={100} color="#f44336" />
         <StatBar
           label="Population"
           value={population}
@@ -186,7 +183,6 @@ function App() {
           color="#4caf50"
         />
         <StatBar label="Food" value={food} max={maxFood} color="#ff9800" />
-        <StatBar label="Health" value={health} max={100} color="#f44336" />
         <StatBar
           label="Minerals"
           value={minerals}
@@ -196,7 +192,7 @@ function App() {
       </div>
 
       <h2>Buildings:</h2>
-      <div className="card">
+      <div className="card" style={{ display: "flex", gap: "30px" }}>
         {buildings.map((b, i) => (
           <p key={i}>{b.name}</p>
         ))}
