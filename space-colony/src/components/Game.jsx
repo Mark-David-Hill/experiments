@@ -4,12 +4,14 @@ import StatBar from "./StatBar";
 
 import { delay } from "../utils/delay";
 
+import {
+  startingValues as sv,
+  buildingBonuses,
+  buildingChoices,
+} from "../config";
+
 function Game() {
-  const startingMaxFood = 1000;
-  const startingMaxMinerals = 1000;
-  const startingMaxPopulation = 1000;
-  const startingFood = 250;
-  const startingMinerals = 100;
+  // const { autoFarm, autoMine, grainSilo, mineralStorehouse } = buildingBonuses;
 
   const autoFarmBonus = 50;
   const autoMineBonus = 50;
@@ -18,12 +20,12 @@ function Game() {
 
   const [year, setYear] = useState(1);
   const [population, setPopulation] = useState(100);
-  const [health, setHealth] = useState(80);
-  const [food, setFood] = useState(startingFood);
-  const [minerals, setMinerals] = useState(startingMinerals);
+  const [health, setHealth] = useState(sv.health);
+  const [food, setFood] = useState(sv.food);
+  const [minerals, setMinerals] = useState(sv.minerals);
 
-  const [maxFood, setMaxFood] = useState(startingMaxFood);
-  const [maxMinerals, setMaxMinerals] = useState(startingMaxMinerals);
+  const [maxFood, setMaxFood] = useState(sv.maxFood);
+  const [maxMinerals, setMaxMinerals] = useState(sv.maxMinerals);
 
   const [foodBonus, setFoodBonus] = useState(0);
   const [mineralsBonus, setMineralsBonus] = useState(0);
@@ -47,8 +49,8 @@ function Game() {
 
   // Passive effects when buildings change
   useEffect(() => {
-    let newFood = startingMaxFood;
-    let newMinerals = startingMaxMinerals;
+    let newFood = sv.maxFood;
+    let newMinerals = sv.maxMinerals;
     let foodBonus = 0;
     let mineralsBonus = 0;
 
@@ -179,7 +181,7 @@ function Game() {
         <StatBar
           label="Population"
           value={population}
-          max={startingMaxPopulation}
+          max={sv.maxPopulation}
           color="#4caf50"
         />
         <StatBar label="Food" value={food} max={maxFood} color="#ff9800" />
