@@ -6,18 +6,11 @@ import { delay } from "../utils/delay";
 
 import {
   startingValues as sv,
-  buildingBonuses,
+  buildingBonuses as bb,
   buildingChoices,
 } from "../config";
 
 function Game() {
-  // const { autoFarm, autoMine, grainSilo, mineralStorehouse } = buildingBonuses;
-
-  const autoFarmBonus = 50;
-  const autoMineBonus = 50;
-  const grainSiloBonus = 500;
-  const mineralStorehouseBonus = 500;
-
   const [year, setYear] = useState(1);
   const [population, setPopulation] = useState(100);
   const [health, setHealth] = useState(sv.health);
@@ -36,17 +29,6 @@ function Game() {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const buildingChoices = [
-    { name: "Auto Farm", cost: 500, description: "Produces +50 food/year" },
-    { name: "Grain Silo", cost: 300, description: "Increases food cap" },
-    { name: "Auto Mine", cost: 700, description: "Produces +50 minerals/year" },
-    {
-      name: "Mineral Storehouse",
-      cost: 300,
-      description: "Increases mineral cap",
-    },
-  ];
-
   // Passive effects when buildings change
   useEffect(() => {
     let newFood = sv.maxFood;
@@ -57,16 +39,16 @@ function Game() {
     buildings.forEach((b) => {
       switch (b.name) {
         case "Grain Silo":
-          newFood += grainSiloBonus;
+          newFood += bb.grainSilo;
           break;
         case "Mineral Storehouse":
-          newMinerals += mineralStorehouseBonus;
+          newMinerals += bb.mineralStorehouse;
           break;
         case "Auto Farm":
-          foodBonus += autoFarmBonus;
+          foodBonus += bb.autoFarm;
           break;
         case "Auto Mine":
-          mineralsBonus += autoMineBonus;
+          mineralsBonus += bb.autoMine;
           break;
       }
     });
