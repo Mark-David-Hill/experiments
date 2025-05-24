@@ -150,9 +150,13 @@ function Game() {
         </button>
         <div className="build-choice">
           <p>Build:</p>
-          {buildingChoices.map((b) => (
-            <button key={b.name} onClick={() => build(b)} disabled={isLoading}>
-              {b.name} ({b.cost})
+          {buildingChoices.map((building) => (
+            <button
+              key={building.name}
+              onClick={() => build(building)}
+              disabled={isLoading || minerals < building.cost}
+            >
+              {building.name} ({building.cost})
             </button>
           ))}
         </div>
