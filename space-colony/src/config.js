@@ -15,12 +15,30 @@ export const buildingBonuses = {
 };
 
 export const buildingChoices = [
-  { name: "Auto Farm", cost: 700, description: "Produces +50 food/year" },
-  { name: "Grain Silo", cost: 300, description: "Increases food cap" },
-  { name: "Auto Mine", cost: 500, description: "Produces +50 minerals/year" },
+  {
+    name: "Auto Farm",
+    cost: 700,
+    description: "Produces +50 food/year",
+    count: 0,
+    maxCount: 5,
+  },
+  {
+    name: "Grain Silo",
+    cost: 300,
+    description: "Increases food cap",
+    count: 0,
+  },
+  {
+    name: "Auto Mine",
+    cost: 500,
+    description: "Produces +50 minerals/year",
+    count: 0,
+    maxCount: 5,
+  },
   {
     name: "Mineral Storehouse",
     cost: 300,
     description: "Increases mineral cap",
+    count: 0,
   },
 ];
