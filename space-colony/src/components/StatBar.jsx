@@ -1,7 +1,8 @@
-import React from "react";
-
 function StatBar({ label, value, max, color }) {
-  const pct = Math.min(100, Math.floor((value / max) * 100));
+  const percentage = Math.min(100, Math.floor((value / max) * 100));
+  const unitWidth = label === "Health" ? 5 : 0.5;
+  const totalWidth = max * unitWidth;
+
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{ fontSize: 14, marginBottom: 4 }}>
@@ -9,6 +10,7 @@ function StatBar({ label, value, max, color }) {
       </div>
       <div
         style={{
+          width: totalWidth,
           background: "#ddd",
           borderRadius: 4,
           overflow: "hidden",
@@ -17,7 +19,7 @@ function StatBar({ label, value, max, color }) {
       >
         <div
           style={{
-            width: `${pct}%`,
+            width: `${percentage}%`,
             height: "100%",
             background: color,
             transition: "width 2s ease",
