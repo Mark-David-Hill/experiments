@@ -89,57 +89,78 @@ function Game() {
     let newMinerals = minerals - buildingCost;
     let newHealth = health;
     let newPopulation = population;
+    let messageUpdates = [];
 
     // 1) Action phase
     if (action === "farm") {
       const produced = Math.floor(population * 2);
       newFood += produced;
-      setMessage(`Farmed ${produced} food.`);
+      messageUpdates.push(`Farmed ${produced} food.`);
       await delay(1000);
     } else if (action === "mine") {
       const produced = Math.floor(population * 1.8);
       newMinerals += produced;
-      setMessage(`Mined ${produced} minerals.`);
+      messageUpdates.push(`Mined ${produced} minerals.`);
+      await delay(1000);
+    } else if (action === "build") {
+      messageUpdates.push(`Completed building.`);
       await delay(1000);
     }
 
     // 2) Passive bonuses
-    newFood += foodBonus;
-    newMinerals += mineralsBonus;
+    if (foodBonus > 0) {
+      newFood += foodBonus;
+      // messageUpdates.push(`+${foodBonus} food from Auto Farms.`);
+    }
+    if (mineralsBonus > 0) {
+      newMinerals += mineralsBonus;
+      // messageUpdates.push(`+${mineralsBonus} minerals from Auto Mines.`);
+    }
+
+    newFood = Math.min(newFood, maxFood);
+    newMinerals = Math.min(newMinerals, maxMinerals);
 
     // 3) food and health change
     if (newFood >= newPopulation) {
       newFood -= newPopulation;
-      if (newHealth < 80) newHealth += 2;
-      setMessage(`There was enough food for everyone`);
+      if (newHealth < 80) newHealth = Math.min(100, newHealth + 2);
+      messageUpdates.push("There was enough food for everyone.");
     } else {
       const loss = 5 + Math.floor(newHealth * 0.2);
       newHealth = Math.max(0, newHealth - loss);
-      newPopulation -= 2 + Math.floor(newPopulation * 0.01);
+      newPopulation = Math.max(
+        0,
+        newPopulation - (2 + Math.floor(newPopulation * 0.01))
+      );
       newFood = 0;
-      setMessage(
+      messageUpdates.push(
         newHealth > 0
           ? "There wasn't enough food for everyone."
           : "Your colony's health is in critical condition. Citizens are dying."
       );
     }
 
-    // 4) Population change
-    newPopulation += populationChange(newHealth, newPopulation);
+    newPopulation = Math.max(
+      0,
+      newPopulation + populationChange(newHealth, newPopulation)
+    );
+
+    // Combine all messages
+    setMessage(messageUpdates.join("\n"));
 
     setFood(newFood);
     setMinerals(newMinerals);
     setHealth(newHealth);
     setPopulation(newPopulation);
-    setYear((m) => m + 1);
+    setYear((prev) => prev + 1);
     setIsLoading(false);
   };
 
   return (
-    <>
+    <div className="game-container">
       <h1>Project Corix E8</h1>
       <h2>Year: {year}</h2>
-      <p style={{ whiteSpace: "pre-wrap" }}>{message}</p>
+      <p style={{ whiteSpace: "pre-wrap", minHeight: "1.5em" }}>{message}</p>
 
       <div className="year-choice">
         <button onClick={() => yearPasses("farm")} disabled={isLoading}>
@@ -185,7 +206,15 @@ function Game() {
           <p key={i}>{b.name}</p>
         ))}
       </div>
-    </>
+
+      <h2>Bonuses:</h2>
+      <div className="card" style={{ margin: "10px 0" }}>
+        <p>Food Bonus per Year: {foodBonus}</p>
+        <p>Minerals Bonus per Year: {mineralsBonus}</p>
+        <p>Max Food Storage: {maxFood}</p>
+        <p>Max Minerals Storage: {maxMinerals}</p>
+      </div>
+    </div>
   );
 }
 
