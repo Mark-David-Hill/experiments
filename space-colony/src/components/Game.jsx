@@ -154,6 +154,11 @@ function Game() {
     setPopulation(newPopulation);
     setYear((prev) => prev + 1);
     setIsLoading(false);
+
+    if (health <= 0) {
+      console.log("Your colony has died.");
+      setIsLoading(true);
+    }
   };
 
   return (
