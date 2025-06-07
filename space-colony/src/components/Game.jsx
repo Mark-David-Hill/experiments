@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 
 import StatBar from "./StatBar";
 
@@ -28,6 +28,7 @@ function Game() {
     "What project do you want the colonists to work on this year?"
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [gameOverState, setGameOverState] = useState(false);
 
   // Passive effects when buildings change
   useEffect(() => {
@@ -155,9 +156,9 @@ function Game() {
     setYear((prev) => prev + 1);
     setIsLoading(false);
 
-    if (health <= 0) {
-      console.log("Your colony has died.");
-      setIsLoading(true);
+    if (newHealth <= 0) {
+      setMessage("Your colony has died out completely.");
+      setGameOverState(true);
     }
   };
 
@@ -168,10 +169,16 @@ function Game() {
       <p style={{ whiteSpace: "pre-wrap", minHeight: "1.5em" }}>{message}</p>
 
       <div className="year-choice">
-        <button onClick={() => yearPasses("farm")} disabled={isLoading}>
+        <button
+          onClick={() => yearPasses("farm")}
+          disabled={isLoading || gameOverState}
+        >
           Farm
         </button>
-        <button onClick={() => yearPasses("mine")} disabled={isLoading}>
+        <button
+          onClick={() => yearPasses("mine")}
+          disabled={isLoading || gameOverState}
+        >
           Mine
         </button>
         <div className="build-choice">
@@ -180,7 +187,7 @@ function Game() {
             <button
               key={building.name}
               onClick={() => build(building)}
-              disabled={isLoading || minerals < building.cost}
+              disabled={isLoading || minerals < building.cost || gameOverState}
             >
               {building.name} ({building.cost})
             </button>
