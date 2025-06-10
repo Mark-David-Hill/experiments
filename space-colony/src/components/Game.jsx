@@ -75,15 +75,14 @@ function Game() {
 
   const build = (building) => {
     if (minerals >= building.cost) {
-      setBuildings((prev) => [...prev, building]);
       setMessage(`Building ${building.name}…`);
-      yearPasses("build", building.cost);
+      yearPasses("build", building.cost, building);
     } else {
       setMessage(`Not enough minerals for ${building.name}.`);
     }
   };
 
-  const yearPasses = async (action, buildingCost = 0) => {
+  const yearPasses = async (action, buildingCost = 0, newBuilding = null) => {
     setIsLoading(true);
 
     let newFood = food;
@@ -103,8 +102,9 @@ function Game() {
       newMinerals += produced;
       messageUpdates.push(`Mined ${produced} minerals.`);
       await delay(1000);
-    } else if (action === "build") {
-      messageUpdates.push(`Completed building.`);
+    } else if (action === "build" && newBuilding) {
+      setBuildings((prev) => [...prev, newBuilding]);
+      messageUpdates.push(`Completed building ${newBuilding.name}.`);
       await delay(1000);
     }
 
