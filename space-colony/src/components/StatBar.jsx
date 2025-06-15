@@ -1,4 +1,4 @@
-function StatBar({ label, value, max, color, maxRowWidth = 1000 }) {
+function StatBar({ label, value, max, color, maxRowWidth = 500 }) {
   const unitWidth = label === "Health" ? 5 : 0.5;
   const unitsPerRow = Math.floor(maxRowWidth / unitWidth);
 

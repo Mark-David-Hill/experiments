@@ -40,3 +40,34 @@
 .read-the-docs {
   color: #888;
 }
+
+.building-slots-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.building-slots-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.building-slots-label {
+  width: 120px;
+  font-weight: 500;
+}
+
+.building-slots {
+  display: flex;
+  gap: 4px;
+}
+
+.building-slot {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid;
+  transition: background-color 0.2s;
+}

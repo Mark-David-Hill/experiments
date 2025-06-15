@@ -238,11 +238,30 @@ function Game() {
         />
       </div>
 
-      <h2>Buildings:</h2>
-      <div className="card" style={{ display: "flex", gap: "30px" }}>
-        {buildings.map((b, i) => (
-          <p key={i}>{b.name}</p>
-        ))}
+      <h2>Building Slots</h2>
+      <div className="building-slots-container">
+        {buildingChoices
+          .filter((b) => typeof b.maxCount === "number")
+          .map((b) => {
+            const built = getBuildingCount(b.name);
+            return (
+              <div key={b.name} className="building-slots-row">
+                <span className="building-slots-label">{b.name}</span>
+                <div className="building-slots">
+                  {Array.from({ length: b.maxCount }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="building-slot"
+                      style={{
+                        backgroundColor: i < built ? b.color : "#eee",
+                        borderColor: "#666",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
       </div>
 
       <h2>Bonuses:</h2>
