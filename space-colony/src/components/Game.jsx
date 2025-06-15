@@ -30,6 +30,9 @@ function Game() {
   const [isLoading, setIsLoading] = useState(false);
   const [gameOverState, setGameOverState] = useState(false);
 
+  const getBuildingCount = (buildingName) =>
+    buildings.filter((b) => b.name === buildingName).length;
+
   // Passive effects when buildings change
   useEffect(() => {
     let newFood = sv.maxFood;
@@ -183,15 +186,38 @@ function Game() {
         </button>
         <div className="build-choice">
           <p>Build:</p>
-          {buildingChoices.map((building) => (
-            <button
-              key={building.name}
-              onClick={() => build(building)}
-              disabled={isLoading || minerals < building.cost || gameOverState}
-            >
-              {building.name} ({building.cost})
-            </button>
-          ))}
+          {buildingChoices.map((building) => {
+            const count = getBuildingCount(building.name);
+            const hasLimit = typeof building.maxCount === "number";
+            const reachedMax = hasLimit && count >= building.maxCount;
+
+            return (
+              <button
+                key={building.name}
+                onClick={() => build(building)}
+                disabled={
+                  isLoading ||
+                  gameOverState ||
+                  minerals < building.cost ||
+                  reachedMax
+                }
+                title={
+                  reachedMax
+                    ? `You’ve built the maximum of ${building.maxCount} ${building.name}(s).`
+                    : undefined
+                }
+              >
+                {building.name} ({building.cost})
+                {hasLimit && (
+                  <span
+                    style={{ marginLeft: 8, fontSize: "0.9em", opacity: 0.75 }}
+                  >
+                    {count}/{building.maxCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
