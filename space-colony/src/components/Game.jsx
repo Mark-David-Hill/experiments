@@ -121,9 +121,6 @@ function Game() {
       // messageUpdates.push(`+${mineralsBonus} minerals from Auto Mines.`);
     }
 
-    newFood = Math.min(newFood, maxFood);
-    newMinerals = Math.min(newMinerals, maxMinerals);
-
     // 3) food and health change
     if (newFood >= newPopulation) {
       newFood -= newPopulation;
@@ -148,6 +145,8 @@ function Game() {
       0,
       newPopulation + populationChange(newHealth, newPopulation)
     );
+    newFood = Math.min(newFood, maxFood);
+    newMinerals = Math.min(newMinerals, maxMinerals);
 
     // Combine all messages
     setMessage(messageUpdates.join("\n"));
