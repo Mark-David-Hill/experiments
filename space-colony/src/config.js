@@ -53,4 +53,12 @@ export const buildingChoices = [
     maxCount: 4,
     color: colors.minerals,
   },
+  {
+    name: "Hospital",
+    cost: 800,
+    description: "Increases health of the colony",
+    count: 0,
+    maxCount: 1,
+    color: colors.health,
+  },
 ];

@@ -23,6 +23,10 @@ function Game() {
   const [foodBonus, setFoodBonus] = useState(0);
   const [mineralsBonus, setMineralsBonus] = useState(0);
 
+  const [maxHealth, setMaxHealth] = useState(sv.health);
+  const [healthIncrease, setHealthIncrease] = useState(2);
+  const [healthDecayFactor, setHealthDecayFactor] = useState(1);
+
   const [buildings, setBuildings] = useState([]);
   const [message, setMessage] = useState(
     "What project do you want the colonists to work on this year?"
@@ -61,6 +65,17 @@ function Game() {
     setMaxMinerals(newMinerals);
     setFoodBonus(foodBonus);
     setMineralsBonus(mineralsBonus);
+
+    const hasHospital = buildings.some((b) => b.name === "Hospital");
+    if (hasHospital) {
+      setMaxHealth(100);
+      setHealthIncrease(4);
+      setHealthDecayFactor(0.5);
+    } else {
+      setMaxHealth(sv.health);
+      setHealthIncrease(2);
+      setHealthDecayFactor(1);
+    }
   }, [buildings]);
 
   const getRandomInt = (min, max) => {
@@ -124,10 +139,13 @@ function Game() {
     // 3) food and health change
     if (newFood >= newPopulation) {
       newFood -= newPopulation;
-      if (newHealth < 80) newHealth = Math.min(100, newHealth + 2);
+      if (newHealth < maxHealth) {
+        newHealth = Math.min(maxHealth, newHealth + healthIncrease);
+      }
       messageUpdates.push("There was enough food for everyone.");
     } else {
-      const loss = 5 + Math.floor(newHealth * 0.2);
+      let loss = 5 + Math.floor(newHealth * 0.2);
+      loss = Math.floor(loss * healthDecayFactor);
       newHealth = Math.max(0, newHealth - loss);
       newPopulation = Math.max(
         0,
