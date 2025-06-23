@@ -10,6 +10,19 @@ import {
   buildingChoices,
 } from "../config";
 
+const getRandomInt = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+const populationChange = (h, p) => {
+  let modifier = h < 50 ? -1 : 1;
+  let min = Math.floor(p * 0.05 * (h / 100));
+  let max = Math.floor(p * 0.1 * (h / 100));
+  return modifier * getRandomInt(min, max);
+};
+
 function Game() {
   const [year, setYear] = useState(1);
   const [population, setPopulation] = useState(100);
@@ -77,19 +90,6 @@ function Game() {
       setHealthDecayFactor(1);
     }
   }, [buildings]);
-
-  const getRandomInt = (min, max) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  const populationChange = (h, p) => {
-    let modifier = h < 50 ? -1 : 1;
-    let min = Math.floor(p * 0.05 * (h / 100));
-    let max = Math.floor(p * 0.1 * (h / 100));
-    return modifier * getRandomInt(min, max);
-  };
 
   const build = (building) => {
     if (minerals >= building.cost) {
