@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 
 import StatBar from "./StatBar";
 
@@ -51,7 +51,7 @@ function Game() {
     buildings.filter((b) => b.name === buildingName).length;
 
   // Passive effects when buildings change
-  useEffect(() => {
+  const recalculateBonuses = (buildings) => {
     let newFood = sv.maxFood;
     let newMinerals = sv.maxMinerals;
     let foodBonus = 0;
@@ -89,7 +89,7 @@ function Game() {
       setHealthIncrease(2);
       setHealthDecayFactor(1);
     }
-  }, [buildings]);
+  };
 
   const build = (building) => {
     if (minerals >= building.cost) {
@@ -181,6 +181,10 @@ function Game() {
       setGameOverState(true);
     }
   };
+
+  useEffect(() => {
+    recalculateBonuses(buildings);
+  }, [buildings]);
 
   return (
     <div className="game-container">
