@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import StatBar from "./StatBar";
 
@@ -51,36 +51,32 @@ function Game() {
     buildings.filter((b) => b.name === buildingName).length;
 
   // Passive effects when buildings change
-  const recalculateBonuses = (buildings) => {
-    let newFood = sv.maxFood;
-    let newMinerals = sv.maxMinerals;
-    let foodBonus = 0;
-    let mineralsBonus = 0;
-
-    buildings.forEach((b) => {
-      switch (b.name) {
-        case "Grain Silo":
-          newFood += bb.grainSilo;
-          break;
-        case "Mineral Storehouse":
-          newMinerals += bb.mineralStorehouse;
-          break;
-        case "Auto Farm":
-          foodBonus += bb.autoFarm;
-          break;
-        case "Auto Mine":
-          mineralsBonus += bb.autoMine;
-          break;
+  const recalculateBonuses = useCallback((list) => {
+    const totals = list.reduce(
+      (acc, { name }) => {
+        if (name === "Grain Silo") acc.maxFood += bb.grainSilo;
+        else if (name === "Mineral Storehouse")
+          acc.maxMinerals += bb.mineralStorehouse;
+        else if (name === "Auto Farm") acc.foodBonus += bb.autoFarm;
+        else if (name === "Auto Mine") acc.mineralsBonus += bb.autoMine;
+        else if (name === "Hospital") acc.hasHospital = true;
+        return acc;
+      },
+      {
+        maxFood: sv.maxFood,
+        maxMinerals: sv.maxMinerals,
+        foodBonus: 0,
+        mineralsBonus: 0,
+        hasHospital: false,
       }
-    });
+    );
 
-    setMaxFood(newFood);
-    setMaxMinerals(newMinerals);
-    setFoodBonus(foodBonus);
-    setMineralsBonus(mineralsBonus);
+    setMaxFood(totals.maxFood);
+    setMaxMinerals(totals.maxMinerals);
+    setFoodBonus(totals.foodBonus);
+    setMineralsBonus(totals.mineralsBonus);
 
-    const hasHospital = buildings.some((b) => b.name === "Hospital");
-    if (hasHospital) {
+    if (totals.hasHospital) {
       setMaxHealth(100);
       setHealthIncrease(4);
       setHealthDecayFactor(0.5);
@@ -89,7 +85,7 @@ function Game() {
       setHealthIncrease(2);
       setHealthDecayFactor(1);
     }
-  };
+  }, []);
 
   const build = (building) => {
     if (minerals >= building.cost) {
