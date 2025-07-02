@@ -16,11 +16,12 @@ const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-const populationChange = (h, p) => {
-  let modifier = h < 50 ? -1 : 1;
-  let min = Math.floor(p * 0.05 * (h / 100));
-  let max = Math.floor(p * 0.1 * (h / 100));
-  return modifier * getRandomInt(min, max);
+const populationChange = (health, population) => {
+  const isInDecline = health < 50;
+  const base = Math.floor(population * (health / 100) * 0.05);
+  const variance = Math.floor(population * (health / 100) * 0.05);
+  const change = getRandomInt(base, base + variance);
+  return isInDecline ? -Math.min(change, Math.floor(population * 0.1)) : change;
 };
 
 function Game() {
