@@ -1,0 +1,316 @@
+body {
+  margin: 0px;
+}
+
+.App {
+  @include flex-col-center;
+  min-height: 100vh;
+  justify-content: space-between;
+  color: $dark;
+
+  button {
+    border: 1px solid $dark;
+  }
+}
+
+.App.dark-mode {
+  color: $dark-mode-light;
+  background-color: rgb(39, 39, 39);
+
+  form {
+    input,
+    textarea {
+      background-color: $dark-mode-gray;
+      color: $dark-mode-light;
+
+      &::placeholder {
+        color: $dark-placeholder;
+      }
+    }
+
+    input[type="submit"] {
+      @include dark-link-standard;
+    }
+  }
+}
+
+.modal-content-wrapper {
+  max-width: 500px;
+  text-align: center;
+
+  .modal-close-wrapper {
+    text-align: right;
+  }
+
+  .close-button {
+    text-align: center;
+  }
+
+  .modal-buttons-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+
+    button {
+      @include link-standard;
+      width: 50px;
+      padding: 5px;
+    }
+  }
+}
+
+.modal-content-wrapper.dark-mode {
+  .modal-close-wrapper {
+    button {
+      @include dark-link-standard;
+    }
+  }
+
+  .modal-buttons-wrapper {
+    button {
+      @include dark-link-standard;
+    }
+  }
+}
+
+// New
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+.game-board-wrapper {
+  margin-right: 30px;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  background-color: azure;
+
+  .start {
+    border: 2px solid green;
+  }
+
+  .destination {
+    border: 2px solid red;
+  }
+}
+
+.game-row {
+  display: flex;
+
+  div {
+    border: 2px solid black;
+    width: 50px;
+    height: 50px;
+  }
+
+  div.color1 {
+    background-color: orange;
+  }
+  div.color2 {
+    background-color: blue;
+  }
+  div.color3 {
+    background-color: yellow;
+  }
+  div.color4 {
+    background-color: green;
+  }
+  div.color5 {
+    background-color: blue;
+  }
+  div.color6 {
+    background-color: indigo;
+  }
+  div.color7 {
+    background-color: violet;
+  }
+}
+
+.color-buttons-wrapper {
+  @include flex-col-center;
+  margin-top: 20px;
+
+  button {
+    padding: 3em;
+
+    &:disabled {
+      border-color: white;
+    }
+  }
+
+  button.color1 {
+    background-color: red;
+  }
+
+  button.color2 {
+    background-color: orange;
+  }
+
+  button.color3 {
+    background-color: yellow;
+  }
+
+  button.color4 {
+    background-color: green;
+  }
+
+  button.color5 {
+    background-color: blue;
+  }
+
+  button.color6 {
+    background-color: indigo;
+  }
+
+  button.color7 {
+    background-color: violet;
+  }
+}
+
+.unlit {
+  background-color: gray;
+}
+
+.lit {
+  background-color: white;
+}
+
+// Checkers specific styles
+.checkers-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.checkers-board {
+  display: inline-block;
+  border: 2px solid #333;
+  background-color: #8b4513;
+}
+
+.checkers-row {
+  display: flex;
+}
+
+.checkers-cell {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+  border: 1px solid #333;
+  position: relative;
+}
+
+.checkers-cell.light {
+  background-color: #f5deb3;
+}
+
+.checkers-cell.dark {
+  background-color: #8b4513;
+}
+
+.checkers-cell.selected {
+  box-shadow: inset 0 0 0 3px #ffd700;
+}
+
+.checkers-cell.possible-move {
+  box-shadow: inset 0 0 0 2px #00ff00;
+}
+
+.red-piece {
+  background-color: #dc143c;
+  color: white;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8b0000;
+}
+
+.black-piece {
+  background-color: #2f4f4f;
+  color: white;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000000;
+}
+
+.red-king {
+  background-color: #dc143c;
+  color: #ffd700;
+  border: 3px solid #ffd700;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.black-king {
+  background-color: #2f4f4f;
+  color: #ffd700;
+  border: 3px solid #ffd700;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Snake specific styles
+.snake-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.snake-board {
+  display: inline-block;
+  border: 2px solid #333;
+  background-color: #228b22;
+}
+
+.snake-row {
+  display: flex;
+}
+
+.snake-cell {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 1px solid #006400;
+  background-color: #32cd32;
+}
+
+.snake-body {
+  background-color: #228b22;
+}
+
+.snake-head {
+  background-color: #006400;
+}
+
+.food-cell {
+  background-color: #ff6347;
+}
