@@ -201,3 +201,86 @@ export function getDirectionRotation(direction) {
   };
   return rotations[direction] || 0;
 }
+
+// Pathfinding utilities
+export function findPath(gridData, startPos, endPos, isNavigableCallback) {
+  const [startRow, startCol] = startPos;
+  const [endRow, endCol] = endPos;
+  const rowCount = gridData.length;
+  const colCount = gridData[0].length;
+
+  // BFS to find path
+  const queue = [[startRow, startCol, [[startRow, startCol]]]];
+  const visited = new Set();
+  visited.add(`${startRow},${startCol}`);
+
+  while (queue.length > 0) {
+    const [row, col, path] = queue.shift();
+
+    // Check if we reached the destination
+    if (row === endRow && col === endCol) {
+      return { hasPath: true, path };
+    }
+
+    // Get adjacent coordinates
+    const adjacent = getAdjacentCoordinates([row, col], rowCount, colCount);
+
+    for (const [adjRow, adjCol] of adjacent) {
+      const key = `${adjRow},${adjCol}`;
+
+      if (
+        !visited.has(key) &&
+        isNavigableCallback(gridData[adjRow][adjCol], adjRow, adjCol)
+      ) {
+        visited.add(key);
+        queue.push([adjRow, adjCol, [...path, [adjRow, adjCol]]]);
+      }
+    }
+  }
+
+  return { hasPath: false, path: [] };
+}
+
+export function generateRandomObstacles(
+  gridSize,
+  numObstacles,
+  excludePositions = []
+) {
+  const obstacles = [];
+  let attempts = 0;
+  const maxAttempts = 1000;
+
+  while (obstacles.length < numObstacles && attempts < maxAttempts) {
+    const obstacle = [
+      Math.floor(Math.random() * gridSize),
+      Math.floor(Math.random() * gridSize),
+    ];
+
+    const isExcluded = excludePositions.some(
+      ([r, c]) => r === obstacle[0] && c === obstacle[1]
+    );
+
+    const isDuplicate = obstacles.some(
+      ([r, c]) => r === obstacle[0] && c === obstacle[1]
+    );
+
+    if (!isExcluded && !isDuplicate) {
+      obstacles.push(obstacle);
+    }
+
+    attempts++;
+  }
+
+  return obstacles;
+}
+
+export function getDirectionString([r0, c0], [r1, c1]) {
+  const dr = r1 - r0;
+  const dc = c1 - c0;
+
+  if (dr < 0) return "UP";
+  if (dr > 0) return "DOWN";
+  if (dc < 0) return "LEFT";
+  if (dc > 0) return "RIGHT";
+  return "RIGHT"; // fallback if somehow the same cell
+}

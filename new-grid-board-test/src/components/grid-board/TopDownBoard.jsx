@@ -12,6 +12,7 @@ import {
   getNextPosition,
   isValidPosition,
   getDirectionRotation,
+  generateRandomObstacles,
 } from "../../utils/gridUtils";
 
 const TopDownBoard = () => {
@@ -21,7 +22,7 @@ const TopDownBoard = () => {
       initializeGridData(
         gridSize,
         gridSize,
-        new CellTemplate("", "topdown-cell")
+        new CellTemplate("", "topdown-cell", false, true, 0, true)
       ),
     [gridSize]
   );
@@ -33,14 +34,37 @@ const TopDownBoard = () => {
   const [characterPosition, setCharacterPosition] = useState(initialPosition);
   const [direction, setDirection] = useState("RIGHT");
   const [gameRunning, setGameRunning] = useState(false);
+  const [obstacles, setObstacles] = useState([]);
 
   const characterPositionRef = useRef(characterPosition);
   const directionRef = useRef(direction);
 
+  // Generate obstacles
+  const generateObstacles = useCallback(() => {
+    const excludePositions = [initialPosition];
+    return generateRandomObstacles(gridSize, 6, excludePositions);
+  }, [gridSize]);
+
   // Update the grid display
   const updateGrid = useCallback(
-    (position, currentDirection) => {
+    (position, currentDirection, obstaclePositions) => {
       let newGrid = initialGridData;
+
+      // Place obstacles
+      obstaclePositions.forEach(([row, col]) => {
+        newGrid = updatedBoardCell(
+          newGrid,
+          [row, col],
+          new CellTemplate(
+            "🚧",
+            "topdown-cell obstacle-cell",
+            false,
+            true,
+            0,
+            false
+          )
+        );
+      });
 
       // Place character with rotation
       const rotation = getDirectionRotation(currentDirection);
@@ -52,7 +76,8 @@ const TopDownBoard = () => {
           "topdown-cell character-cell",
           false,
           true,
-          rotation
+          rotation,
+          true
         )
       );
 
@@ -61,49 +86,60 @@ const TopDownBoard = () => {
     [initialGridData]
   );
 
-  // Handle continue forward from GridBoard
-  const handleContinueForward = useCallback(() => {
-    if (!gameRunning) return;
-
-    const currentPosition = characterPositionRef.current;
-    const currentDirection = directionRef.current;
-
-    const nextPosition = getNextPosition(
-      currentPosition,
-      currentDirection,
-      gridSize
-    );
-
-    // Check if the new position is valid (within bounds)
-    if (isValidPosition(nextPosition, gridSize)) {
-      setCharacterPosition(nextPosition);
-    }
-  }, [gameRunning, gridSize]);
-
   // Handle direction change from GridBoard
   const handleDirectionChange = useCallback(
     (newDirection) => {
       if (!gameRunning) return;
 
-      const currentPosition = characterPositionRef.current;
+      setDirection(newDirection);
 
+      const currentPosition = characterPositionRef.current;
       const nextPosition = getNextPosition(
         currentPosition,
         newDirection,
         gridSize
       );
 
-      // Check if the new position is valid (within bounds)
-      if (isValidPosition(nextPosition, gridSize)) {
+      // Check if the new position is valid and navigable
+      if (
+        isValidPosition(nextPosition, gridSize) &&
+        !obstacles.some(
+          ([r, c]) => r === nextPosition[0] && c === nextPosition[1]
+        )
+      ) {
         setCharacterPosition(nextPosition);
-        setDirection(newDirection);
       }
     },
-    [gameRunning, gridSize]
+    [gameRunning, gridSize, obstacles]
   );
+
+  // Handle continue forward from GridBoard
+  const handleContinueForward = useCallback(() => {
+    if (!gameRunning) return;
+
+    const currentPosition = characterPositionRef.current;
+    const currentDirection = directionRef.current;
+    const nextPosition = getNextPosition(
+      currentPosition,
+      currentDirection,
+      gridSize
+    );
+
+    // Check if the new position is valid and navigable
+    if (
+      isValidPosition(nextPosition, gridSize) &&
+      !obstacles.some(
+        ([r, c]) => r === nextPosition[0] && c === nextPosition[1]
+      )
+    ) {
+      setCharacterPosition(nextPosition);
+    }
+  }, [gameRunning, gridSize, obstacles]);
 
   // Start or restart game
   const startGame = () => {
+    const newObstacles = generateObstacles();
+    setObstacles(newObstacles);
     setCharacterPosition(initialPosition);
     setDirection("RIGHT");
     setGameRunning(true);
@@ -113,15 +149,17 @@ const TopDownBoard = () => {
     setGameRunning(false);
   };
 
-  // Update grid when character position or direction changes
+  // Update grid when character position, direction, or obstacles change
   useEffect(() => {
-    updateGrid(characterPosition, direction);
-  }, [characterPosition, direction, updateGrid]);
+    updateGrid(characterPosition, direction, obstacles);
+  }, [characterPosition, direction, obstacles, updateGrid]);
 
-  // Initialize the grid
+  // Initialize the grid with obstacles
   useEffect(() => {
-    updateGrid(initialPosition, "RIGHT");
-  }, [updateGrid]);
+    const initialObstacles = generateObstacles();
+    setObstacles(initialObstacles);
+    updateGrid(initialPosition, "RIGHT", initialObstacles);
+  }, [updateGrid, generateObstacles]);
 
   // Keep characterPositionRef updated
   useEffect(() => {
@@ -172,6 +210,7 @@ const TopDownBoard = () => {
           onContinueForward={handleContinueForward}
           onDirectionChange={handleDirectionChange}
           gameRunning={gameRunning}
+          direction={direction}
         />
       </div>
     </div>

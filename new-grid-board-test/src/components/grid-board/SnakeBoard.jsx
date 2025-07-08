@@ -11,6 +11,7 @@ import {
   updatedBoardCell,
   getNextPosition,
   wrapPosition,
+  generateRandomObstacles,
 } from "../../utils/gridUtils";
 
 import { useGridGame } from "../../hooks/useGridGame";
@@ -22,7 +23,7 @@ const SnakeBoard = () => {
       initializeGridData(
         gridSize,
         gridSize,
-        new CellTemplate("", "snake-cell")
+        new CellTemplate("", "snake-cell", false, true, 0, true)
       ),
     [gridSize]
   );
@@ -34,32 +35,16 @@ const SnakeBoard = () => {
     [Math.floor(gridSize / 2), Math.floor(gridSize / 2)],
   ];
 
-  // Generate obstacles (impassable squares)
+  // Generate obstacles using the new utility function
   const generateObstacles = useCallback(() => {
-    const obstacles = [];
-    const numObstacles = 8;
     const initialSnakeRow = Math.floor(gridSize / 2);
+    const excludePositions = [
+      ...initialSnake,
+      // Exclude the entire middle row to give snake room to start
+      ...Array.from({ length: gridSize }, (_, col) => [initialSnakeRow, col]),
+    ];
 
-    for (let i = 0; i < numObstacles; i++) {
-      let obstacle;
-      let attempts = 0;
-      do {
-        obstacle = [
-          Math.floor(Math.random() * gridSize),
-          Math.floor(Math.random() * gridSize),
-        ];
-        attempts++;
-      } while (
-        (obstacle[0] === initialSnakeRow ||
-          initialSnake.some(
-            ([r, c]) => r === obstacle[0] && c === obstacle[1]
-          ) ||
-          obstacles.some(([r, c]) => r === obstacle[0] && c === obstacle[1])) &&
-        attempts < 100
-      );
-      obstacles.push(obstacle);
-    }
-    return obstacles;
+    return generateRandomObstacles(gridSize, 8, excludePositions);
   }, [gridSize]);
 
   const [gridData, setGridData] = useState(initialGridData);
@@ -110,12 +95,19 @@ const SnakeBoard = () => {
     (snakePositions, foodPosition, obstaclePositions) => {
       let newGrid = initialGridData;
 
-      // Place obstacles
+      // Place obstacles with isNavigable = false
       obstaclePositions.forEach(([row, col]) => {
         newGrid = updatedBoardCell(
           newGrid,
           [row, col],
-          new CellTemplate("🚧", "snake-cell obstacle-cell")
+          new CellTemplate(
+            "🚧",
+            "snake-cell obstacle-cell",
+            false,
+            true,
+            0,
+            false
+          )
         );
       });
 

@@ -314,3 +314,102 @@ body {
 .food-cell {
   background-color: #ff6347;
 }
+
+// Checkers specific styles
+.checkers-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+
+  .checkers-board {
+    border: 2px solid #333;
+    background-color: #8b4513;
+  }
+
+  .checkers-cell {
+    width: 60px;
+    height: 60px;
+    font-size: 130px;
+    padding-bottom: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .checkers-cell.light {
+    background-color: #f5deb3;
+  }
+
+  .checkers-cell.dark {
+    background-color: #8b4513;
+  }
+
+  .checkers-cell.selected {
+    box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.8);
+  }
+
+  .checkers-cell.possible-move {
+    box-shadow: inset 0 0 0 3px rgba(50, 205, 50, 0.7);
+  }
+
+  .red-piece {
+    color: red;
+  }
+
+  .black-piece {
+    color: black;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000000;
+  }
+
+  .red-king {
+    color: red;
+    font-size: 100px;
+  }
+
+  .black-king {
+    color: black;
+    font-size: 100px;
+  }
+}
+
+.navigation-cell {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.land-cell {
+  background-color: #90ee90; /* Light green for land */
+}
+
+.water-cell {
+  background-color: #87ceeb; /* Sky blue for water */
+}
+
+.start-cell {
+  background-color: #32cd32; /* Lime green for start */
+  color: white;
+}
+
+.target-cell {
+  background-color: #ff6347; /* Tomato red for target */
+  color: white;
+}
+
+.path-cell {
+  background-color: #ffd700 !important; /* Gold for path */
+  color: black;
+}
+
+.obstacle-cell {
+  background-color: #8b4513; /* Brown for obstacles */
+}
