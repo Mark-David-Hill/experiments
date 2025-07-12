@@ -14,8 +14,6 @@ import {
   generateRandomObstacles,
 } from "../../utils/gridUtils";
 
-import { useGridGame } from "../../hooks/useGridGame";
-
 const SnakeBoard = () => {
   const gridSize = 12;
   const initialGridData = useMemo(

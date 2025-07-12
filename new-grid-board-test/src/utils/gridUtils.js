@@ -1,3 +1,5 @@
+import { CellTemplate } from "../components/grid-board/GridBoard";
+
 export function initializeGridData(rowCount, colCount, cellData) {
   return Array.from({ length: rowCount }, () =>
     Array.from({ length: colCount }, () => cellData)
@@ -274,13 +276,101 @@ export function generateRandomObstacles(
   return obstacles;
 }
 
-export function getDirectionString([r0, c0], [r1, c1]) {
-  const dr = r1 - r0;
-  const dc = c1 - c0;
+export function getDirectionString(
+  currentPos,
+  nextPos,
+  fallbackDirection = "RIGHT"
+) {
+  if (!currentPos || !nextPos) {
+    return fallbackDirection;
+  }
 
-  if (dr < 0) return "UP";
-  if (dr > 0) return "DOWN";
-  if (dc < 0) return "LEFT";
-  if (dc > 0) return "RIGHT";
-  return "RIGHT"; // fallback if somehow the same cell
+  const [currentRow, currentCol] = currentPos;
+  const [nextRow, nextCol] = nextPos;
+
+  const rowDiff = nextRow - currentRow;
+  const colDiff = nextCol - currentCol;
+
+  if (rowDiff < 0) return "UP";
+  else if (rowDiff > 0) return "DOWN";
+  else if (colDiff < 0) return "LEFT";
+  else if (colDiff > 0) return "RIGHT";
+
+  return fallbackDirection;
+}
+
+export function getFirstStepInPath(path) {
+  // Returns the first step after the starting position
+  if (path.length <= 1) return null;
+  return path[1];
+}
+
+export function highlightPath(gridData, path, pathCellClass = "path-cell") {
+  let newGrid = gridData.map((row) => row.slice());
+
+  for (let i = 1; i < path.length - 1; i++) {
+    const [row, col] = path[i];
+    const cell = newGrid[row][col];
+    const classes = cell.classNames || cell.classes || "";
+
+    const newClasses = classes.includes(pathCellClass)
+      ? classes
+      : `${classes} ${pathCellClass}`.trim();
+
+    // apply the new classNames
+    newGrid = updatedBoardCell(
+      newGrid,
+      [row, col],
+      new CellTemplate(
+        cell.text,
+        newClasses,
+        cell.isExplored,
+        cell.canExplore,
+        cell.rotation,
+        cell.isNavigable,
+        cell.isStart,
+        cell.isTarget,
+        cell.isOnPath
+      )
+    );
+  }
+
+  return newGrid;
+}
+
+export function clearHighlights(gridData, pathCellClass = "path-cell") {
+  let newGrid = gridData.map((row) => row.slice());
+
+  for (let row = 0; row < newGrid.length; row++) {
+    for (let col = 0; col < newGrid[row].length; col++) {
+      const cell = newGrid[row][col];
+      const classes = cell.classNames || cell.classes || "";
+
+      if (classes.includes(pathCellClass)) {
+        // Remove the path cell class
+        const newClasses = classes
+          .split(" ")
+          .filter((c) => c !== pathCellClass)
+          .join(" ");
+
+        newGrid = updatedBoardCell(
+          newGrid,
+          [row, col],
+          new CellTemplate(
+            cell.text,
+            newClasses,
+            cell.isExplored,
+            cell.canExplore,
+            cell.rotation,
+            cell.isNavigable,
+            cell.isStart,
+            cell.isTarget,
+            cell.isOnPath
+          )
+        );
+      }
+    }
+  }
+
+  return newGrid;
 }

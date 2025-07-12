@@ -10,14 +10,15 @@ import {
   initializeGridData,
   updatedBoardCell,
   findPath,
-  getDirectionRotation,
   getDirectionString,
+  getDirectionRotation,
+  highlightPath,
+  clearHighlights,
 } from "../../utils/gridUtils";
 
 export default function NavigationBoard() {
   const gridSize = 12;
   const startPos = useRef([0, 0]).current;
-  const timeoutsRef = useRef([]);
 
   const [gridData, setGridData] = useState(null);
   const [hasPath, setHasPath] = useState(false);
@@ -26,6 +27,9 @@ export default function NavigationBoard() {
   const [characterPosition, setCharacterPosition] = useState(startPos);
   const [characterDirection, setCharacterDirection] = useState("RIGHT");
   const [isFollowingPath, setIsFollowingPath] = useState(false);
+
+  // Add ref to track timeouts for cleanup
+  const timeoutRef = useRef(null);
 
   const initialGridData = useMemo(
     () =>
@@ -36,16 +40,6 @@ export default function NavigationBoard() {
       ),
     [gridSize]
   );
-
-  const setNewTimeout = (fn, delay) => {
-    const id = setTimeout(fn, delay);
-    timeoutsRef.current.push(id);
-  };
-
-  const clearTimeouts = () => {
-    timeoutsRef.current.forEach((id) => clearTimeout(id));
-    timeoutsRef.current = [];
-  };
 
   const generateRandomTargetPosition = useCallback(() => {
     let newTarget;
@@ -151,44 +145,51 @@ export default function NavigationBoard() {
   }, []);
 
   const updateGridWithCharacter = useCallback(
-    (board, prevPos, charPos, charDir) => {
+    (board, charPos, charDir) => {
       let newGrid = [...board.map((row) => [...row])];
 
-      // Place character with rotation
+      // Clear any existing character cells first
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+          const cell = newGrid[row][col];
+          if (cell.classNames.includes("character-cell")) {
+            // Remove character-cell class and arrow text, restore original content
+            const cleanedClasses = cell.classNames.replace(
+              " character-cell",
+              ""
+            );
+            let originalText = "";
+            if (cell.isStart) originalText = "Start";
+            else if (cell.isTarget) originalText = "Target";
+
+            newGrid = updatedBoardCell(
+              newGrid,
+              [row, col],
+              new CellTemplate(
+                originalText,
+                cleanedClasses,
+                cell.isExplored,
+                cell.canExplore,
+                0, // Reset rotation
+                cell.isNavigable,
+                cell.isStart,
+                cell.isTarget,
+                cell.isOnPath
+              )
+            );
+          }
+        }
+      }
+
+      // Place character with rotation at new position
       const cell = newGrid[charPos[0]][charPos[1]];
       const rotation = getDirectionRotation(charDir);
-
-      // Clear the previous character cell (unless it's Start or Target)
-      if (prevPos) {
-        const prevCell = newGrid[prevPos[0]][prevPos[1]];
-        let newPrevCellText = "";
-        if (prevCell.isStart) {
-          newPrevCellText = "Start";
-        } else if (prevCell.isTarget) {
-          newPrevCellText = "Target";
-        }
-        newGrid = updatedBoardCell(
-          newGrid,
-          prevPos,
-          new CellTemplate(
-            newPrevCellText,
-            prevCell.classNames.replace(" character-cell", ""),
-            prevCell.isExplored,
-            prevCell.canExplore,
-            0,
-            prevCell.isNavigable,
-            prevCell.isStart,
-            prevCell.isTarget,
-            prevCell.isOnPath
-          )
-        );
-      }
 
       newGrid = updatedBoardCell(
         newGrid,
         charPos,
         new CellTemplate(
-          cell.isStart ? "⬆️" : cell.isTarget ? "⬆️" : "⬆️",
+          "⬆️",
           cell.classNames + " character-cell",
           cell.isExplored,
           cell.canExplore,
@@ -202,21 +203,27 @@ export default function NavigationBoard() {
 
       return newGrid;
     },
-    []
+    [gridSize]
   );
 
   const resetBoard = useCallback(() => {
-    clearTimeouts();
+    // Clear any existing timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     const { grid: newBoard, targetPos: newTarget } = generateRandomBoard();
     const pathResult = checkForPath(newBoard, newTarget);
 
-    let finalBoard = newBoard;
+    // clear highlights for old path then add them for the new path
+    let finalBoard = clearHighlights(newBoard);
     if (pathResult.hasPath) {
-      finalBoard = updateGridWithPath(newBoard, pathResult.path);
+      finalBoard = highlightPath(finalBoard, pathResult.path);
     }
 
     // Add character to the board
-    finalBoard = updateGridWithCharacter(finalBoard, null, startPos, "RIGHT");
+    finalBoard = updateGridWithCharacter(finalBoard, startPos, "RIGHT");
 
     setGridData(finalBoard);
     setCharacterPosition(startPos);
@@ -233,68 +240,75 @@ export default function NavigationBoard() {
   const followPath = useCallback(() => {
     if (!hasPath || pathCells.length === 0 || isFollowingPath) return;
 
-    const lastCell = pathCells[pathCells.length - 1];
-    if (
-      characterPosition[0] === lastCell[0] &&
-      characterPosition[1] === lastCell[1]
-    ) {
-      // clear character from target position and place at start
-      setGridData((prev) =>
-        updateGridWithCharacter(prev, lastCell, startPos, "RIGHT")
-      );
-      setCharacterPosition(startPos);
-      setCharacterDirection("RIGHT");
+    // Clear any existing timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
 
     setIsFollowingPath(true);
+
+    setCharacterPosition(startPos);
+    setCharacterDirection("RIGHT");
+
+    if (gridData) {
+      const resetGrid = updateGridWithCharacter(gridData, startPos, "RIGHT");
+      setGridData(resetGrid);
+    }
+
     let currentIndex = 0;
 
     const moveCharacter = () => {
       if (currentIndex >= pathCells.length - 1) {
         setIsFollowingPath(false);
-        clearTimeouts();
+        timeoutRef.current = null;
         return;
       }
 
       const currentPos = pathCells[currentIndex];
       const nextPos = pathCells[currentIndex + 1];
+
+      // Calculate direction from current to next position
       const direction = getDirectionString(currentPos, nextPos);
 
       setCharacterPosition(nextPos);
       setCharacterDirection(direction);
 
-      setGridData((prevGrid) => {
-        if (!prevGrid) return prevGrid;
-        return updateGridWithCharacter(
-          prevGrid,
-          currentPos,
+      // Update grid with new character position
+      if (gridData) {
+        const updatedGrid = updateGridWithCharacter(
+          gridData,
           nextPos,
           direction
         );
-      });
+        setGridData(updatedGrid);
+      }
 
       currentIndex++;
 
       if (currentIndex < pathCells.length - 1) {
-        setNewTimeout(moveCharacter, 500); // Move every 500ms
+        timeoutRef.current = setTimeout(moveCharacter, 500); // Move every 500ms
       } else {
         setIsFollowingPath(false);
+        timeoutRef.current = null;
       }
     };
 
-    clearTimeouts();
-    setNewTimeout(moveCharacter, 500);
+    timeoutRef.current = setTimeout(moveCharacter, 500);
   }, [hasPath, pathCells, isFollowingPath, gridData, updateGridWithCharacter]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     resetBoard();
   }, [resetBoard]);
-
-  useEffect(() => {
-    return () => {
-      clearTimeouts();
-    };
-  }, []);
 
   return (
     <div className="navigation-board-container">
