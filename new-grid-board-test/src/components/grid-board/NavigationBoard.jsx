@@ -16,81 +16,73 @@ import {
   clearHighlights,
 } from "../../utils/gridUtils";
 
+const GRID_SIZE = 12;
+const MOVE_INTERVAL = 500;
+
 export default function NavigationBoard() {
-  const gridSize = 12;
-  const startPos = useRef([0, 0]).current;
-
-  const [gridData, setGridData] = useState(null);
-  const [hasPath, setHasPath] = useState(false);
-  const [pathCells, setPathCells] = useState([]);
-  const [targetPos, setTargetPos] = useState([2, 2]);
-  const [characterPosition, setCharacterPosition] = useState(startPos);
-  const [characterDirection, setCharacterDirection] = useState("RIGHT");
-  const [isFollowingPath, setIsFollowingPath] = useState(false);
-
-  // Add ref to track timeouts for cleanup
+  const startPos = useRef([0, 0]);
   const timeoutRef = useRef(null);
-
-  const initialGridData = useMemo(
-    () =>
-      initializeGridData(
-        gridSize,
-        gridSize,
-        new CellTemplate("", "navigation-cell")
-      ),
-    [gridSize]
+  const defaultTemplate = useMemo(
+    () => new CellTemplate("", "navigation-cell"),
+    []
   );
 
-  const generateRandomTargetPosition = useCallback(() => {
-    let newTarget;
+  const [grid, setGrid] = useState(() =>
+    initializeGridData(GRID_SIZE, GRID_SIZE, defaultTemplate)
+  );
+  const [pathCells, setPathCells] = useState([]);
+  const [hasPath, setHasPath] = useState(false);
+  const [target, setTarget] = useState([2, 2]);
+  const [charPos, setCharPos] = useState(startPos.current);
+  const [charDir, setCharDir] = useState("RIGHT");
+  const [following, setFollowing] = useState(false);
+
+  const cloneGrid = useCallback((board) => board.map((row) => [...row]), []);
+
+  const randomPos = useCallback(() => {
+    let pos;
     do {
-      newTarget = [
-        Math.floor(Math.random() * gridSize),
-        Math.floor(Math.random() * gridSize),
+      pos = [
+        Math.floor(Math.random() * GRID_SIZE),
+        Math.floor(Math.random() * GRID_SIZE),
       ];
-    } while (newTarget[0] === startPos[0] && newTarget[1] === startPos[1]);
-    return newTarget;
-  }, [gridSize, startPos]);
+    } while (pos[0] === startPos.current[0] && pos[1] === startPos.current[1]);
+    return pos;
+  }, []);
 
-  const generateRandomBoard = useCallback(() => {
-    let newGrid = initialGridData;
-    const newTargetPos = generateRandomTargetPosition();
-    setTargetPos(newTargetPos);
+  /**
+   * Generates and returns a new grid and target without setting state inside.
+   */
+  const generateBoard = useCallback(() => {
+    let newGrid = initializeGridData(GRID_SIZE, GRID_SIZE, defaultTemplate);
+    const newTarget = randomPos();
 
-    // Generate random navigable/impassable cells
-    for (let row = 0; row < gridSize; row++) {
-      for (let col = 0; col < gridSize; col++) {
-        const isStart = row === startPos[0] && col === startPos[1];
-        const isTarget = row === newTargetPos[0] && col === newTargetPos[1];
-        const isNavigable = isStart || isTarget || Math.random() > 0.3;
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const isStart = r === startPos.current[0] && c === startPos.current[1];
+        const isTarget = r === newTarget[0] && c === newTarget[1];
+        const isNav = isStart || isTarget || Math.random() > 0.3;
 
-        let cellText = "";
-        let cellClasses = "navigation-cell";
-
-        if (isStart) {
-          cellText = "Start";
-          cellClasses += " start-cell";
-        } else if (isTarget) {
-          cellText = "Target";
-          cellClasses += " target-cell";
-        }
-
-        if (isNavigable) {
-          cellClasses += " land-cell";
-        } else {
-          cellClasses += " water-cell";
-        }
+        const text = isStart ? "Start" : isTarget ? "Target" : "";
+        const classes = [
+          "navigation-cell",
+          isStart && "start-cell",
+          isTarget && "target-cell",
+          isNav ? "land-cell" : "water-cell",
+        ]
+          .filter(Boolean)
+          .join(" ");
 
         newGrid = updatedBoardCell(
           newGrid,
-          [row, col],
+          [r, c],
           new CellTemplate(
-            cellText,
-            cellClasses,
+            text,
+            classes,
             false,
             true,
             0,
-            isNavigable,
+            isNav,
             isStart,
             isTarget,
             false
@@ -99,78 +91,38 @@ export default function NavigationBoard() {
       }
     }
 
-    return { grid: newGrid, targetPos: newTargetPos };
-  }, [initialGridData, gridSize, startPos, generateRandomTargetPosition]);
+    return { newGrid, newTarget };
+  }, [randomPos, defaultTemplate]);
 
-  const checkForPath = useCallback(
-    (board, target) => {
-      const isNavigableCallback = (cell) => cell.isNavigable;
-
-      const result = findPath(board, startPos, target, isNavigableCallback);
-
-      setHasPath(result.hasPath);
-      setPathCells(result.path);
-
-      return result;
-    },
-    [startPos]
-  );
-
-  const updateGridWithPath = useCallback((board, path) => {
-    let newGrid = [...board.map((row) => [...row])];
-
-    // Highlight path cells (excluding start and target)
-    path.forEach(([row, col]) => {
-      const cell = newGrid[row][col];
-      if (!cell.isStart && !cell.isTarget) {
-        newGrid = updatedBoardCell(
-          newGrid,
-          [row, col],
-          new CellTemplate(
-            cell.text,
-            cell.classNames + " path-cell",
-            cell.isExplored,
-            cell.canExplore,
-            cell.rotation,
-            cell.isNavigable,
-            cell.isStart,
-            cell.isTarget,
-            true
-          )
-        );
-      }
-    });
-
-    return newGrid;
+  const computePath = useCallback((board, tgt) => {
+    const { hasPath, path } = findPath(
+      board,
+      startPos.current,
+      tgt,
+      (cell) => cell.isNavigable
+    );
+    setHasPath(hasPath);
+    setPathCells(path);
+    return { hasPath, path };
   }, []);
 
-  const updateGridWithCharacter = useCallback(
-    (board, charPos, charDir) => {
-      let newGrid = [...board.map((row) => [...row])];
-
-      // Clear any existing character cells first
-      for (let row = 0; row < gridSize; row++) {
-        for (let col = 0; col < gridSize; col++) {
-          const cell = newGrid[row][col];
+  const placeCharacter = useCallback(
+    (board, pos, dir) => {
+      let gridCopy = cloneGrid(board);
+      // clear old character cells
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const cell = gridCopy[r][c];
           if (cell.classNames.includes("character-cell")) {
-            // Remove character-cell class and arrow text, restore original content
-            const cleanedClasses = cell.classNames.replace(
-              " character-cell",
-              ""
-            );
-            let originalText = "";
-            if (cell.isStart) originalText = "Start";
-            else if (cell.isTarget) originalText = "Target";
-
-            newGrid = updatedBoardCell(
-              newGrid,
-              [row, col],
+            gridCopy = updatedBoardCell(
+              gridCopy,
+              [r, c],
               new CellTemplate(
-                originalText,
-                cleanedClasses,
+                cell.isStart ? "Start" : cell.isTarget ? "Target" : "",
+                cell.classNames.replace(" character-cell", ""),
                 cell.isExplored,
                 cell.canExplore,
-                0, // Reset rotation
+                0,
                 cell.isNavigable,
                 cell.isStart,
                 cell.isTarget,
@@ -181,186 +133,104 @@ export default function NavigationBoard() {
         }
       }
 
-      // Place character with rotation at new position
-      const cell = newGrid[charPos[0]][charPos[1]];
-      const rotation = getDirectionRotation(charDir);
-
-      newGrid = updatedBoardCell(
-        newGrid,
-        charPos,
+      // place new character
+      const rotation = getDirectionRotation(dir);
+      gridCopy = updatedBoardCell(
+        gridCopy,
+        pos,
         new CellTemplate(
           "⬆️",
-          cell.classNames + " character-cell",
-          cell.isExplored,
-          cell.canExplore,
+          `${gridCopy[pos[0]][pos[1]].classNames} character-cell`,
+          gridCopy[pos[0]][pos[1]].isExplored,
+          gridCopy[pos[0]][pos[1]].canExplore,
           rotation,
-          cell.isNavigable,
-          cell.isStart,
-          cell.isTarget,
-          cell.isOnPath
+          gridCopy[pos[0]][pos[1]].isNavigable,
+          gridCopy[pos[0]][pos[1]].isStart,
+          gridCopy[pos[0]][pos[1]].isTarget,
+          gridCopy[pos[0]][pos[1]].isOnPath
         )
       );
 
-      return newGrid;
+      return gridCopy;
     },
-    [gridSize]
+    [cloneGrid]
   );
 
+  /**
+   * Fully resets board, path, and character. No unstable deps.
+   */
   const resetBoard = useCallback(() => {
-    // Clear any existing timeouts
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    const { grid: newBoard, targetPos: newTarget } = generateRandomBoard();
-    const pathResult = checkForPath(newBoard, newTarget);
+    const { newGrid, newTarget } = generateBoard();
+    setTarget(newTarget);
 
-    // clear highlights for old path then add them for the new path
-    let finalBoard = clearHighlights(newBoard);
-    if (pathResult.hasPath) {
-      finalBoard = highlightPath(finalBoard, pathResult.path);
-    }
+    const { hasPath: found, path } = computePath(newGrid, newTarget);
 
-    // Add character to the board
-    finalBoard = updateGridWithCharacter(finalBoard, startPos, "RIGHT");
+    let final = clearHighlights(newGrid);
+    if (found) final = highlightPath(final, path);
+    final = placeCharacter(final, startPos.current, "RIGHT");
 
-    setGridData(finalBoard);
-    setCharacterPosition(startPos);
-    setCharacterDirection("RIGHT");
-    setIsFollowingPath(false);
-  }, [
-    generateRandomBoard,
-    checkForPath,
-    updateGridWithPath,
-    updateGridWithCharacter,
-    startPos,
-  ]);
+    setGrid(final);
+    setCharPos(startPos.current);
+    setCharDir("RIGHT");
+    setFollowing(false);
+  }, [generateBoard, computePath, placeCharacter]);
 
   const followPath = useCallback(() => {
-    if (!hasPath || pathCells.length === 0 || isFollowingPath) return;
+    if (!hasPath || following) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    // Clear any existing timeouts
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    setFollowing(true);
+    setCharPos(startPos.current);
+    setCharDir("RIGHT");
 
-    setIsFollowingPath(true);
-
-    setCharacterPosition(startPos);
-    setCharacterDirection("RIGHT");
-
-    if (gridData) {
-      const resetGrid = updateGridWithCharacter(gridData, startPos, "RIGHT");
-      setGridData(resetGrid);
-    }
-
-    let currentIndex = 0;
-
-    const moveCharacter = () => {
-      if (currentIndex >= pathCells.length - 1) {
-        setIsFollowingPath(false);
-        timeoutRef.current = null;
+    let idx = 0;
+    const step = () => {
+      if (idx >= pathCells.length - 1) {
+        setFollowing(false);
         return;
       }
 
-      const currentPos = pathCells[currentIndex];
-      const nextPos = pathCells[currentIndex + 1];
+      const curr = pathCells[idx];
+      const next = pathCells[idx + 1];
+      const dir = getDirectionString(curr, next);
 
-      // Calculate direction from current to next position
-      const direction = getDirectionString(currentPos, nextPos);
+      setCharPos(next);
+      setCharDir(dir);
+      setGrid((board) => placeCharacter(board, next, dir));
 
-      setCharacterPosition(nextPos);
-      setCharacterDirection(direction);
-
-      // Update grid with new character position
-      if (gridData) {
-        const updatedGrid = updateGridWithCharacter(
-          gridData,
-          nextPos,
-          direction
-        );
-        setGridData(updatedGrid);
-      }
-
-      currentIndex++;
-
-      if (currentIndex < pathCells.length - 1) {
-        timeoutRef.current = setTimeout(moveCharacter, 500); // Move every 500ms
-      } else {
-        setIsFollowingPath(false);
-        timeoutRef.current = null;
-      }
+      idx++;
+      timeoutRef.current = setTimeout(step, MOVE_INTERVAL);
     };
 
-    timeoutRef.current = setTimeout(moveCharacter, 500);
-  }, [hasPath, pathCells, isFollowingPath, gridData, updateGridWithCharacter]);
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+    timeoutRef.current = setTimeout(step, MOVE_INTERVAL);
+  }, [hasPath, following, pathCells, placeCharacter]);
 
   useEffect(() => {
     resetBoard();
+    return () => clearTimeout(timeoutRef.current);
   }, [resetBoard]);
 
   return (
     <div className="navigation-board-container">
       <h2>Navigation Pathfinding</h2>
-      <div style={{ marginBottom: "15px", textAlign: "center" }}>
-        <p style={{ margin: "5px 0" }}>
+      <div className="controls">
+        <p className="status">
           <strong>
-            {hasPath
-              ? "✅ There is a path to the destination"
-              : "❌ There is no path to the destination"}
+            {hasPath ? "✅ Path available" : "❌ No path to destination"}
           </strong>
         </p>
-        <p style={{ margin: "5px 0", fontSize: "14px" }}>
-          🟩 Land (navigable) | 🟦 Water (impassable) | 🟨 Path found | ⬆️
-          Character
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-          <button
-            onClick={resetBoard}
-            disabled={isFollowingPath}
-            style={{
-              padding: "10px 20px",
-              fontSize: "16px",
-              backgroundColor: isFollowingPath ? "#ccc" : "#4ecdc4",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: isFollowingPath ? "not-allowed" : "pointer",
-            }}
-          >
-            Generate New Layout
+        <div className="buttons">
+          <button onClick={resetBoard} disabled={following}>
+            Generate New
           </button>
-          <button
-            onClick={followPath}
-            disabled={!hasPath || isFollowingPath}
-            style={{
-              padding: "10px 20px",
-              fontSize: "16px",
-              backgroundColor: !hasPath || isFollowingPath ? "#ccc" : "#ff9f43",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: !hasPath || isFollowingPath ? "not-allowed" : "pointer",
-            }}
-          >
-            {isFollowingPath ? "Following..." : "Follow Path"}
+          <button onClick={followPath} disabled={!hasPath || following}>
+            {following ? "Moving..." : "Follow Path"}
           </button>
         </div>
       </div>
-      <div className="navigation-board">
-        {gridData && <GridBoard gridData={gridData} onCellClick={() => {}} />}
-      </div>
+      <GridBoard gridData={grid} onCellClick={() => {}} />
     </div>
   );
 }
