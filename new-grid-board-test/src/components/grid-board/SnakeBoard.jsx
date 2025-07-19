@@ -14,280 +14,216 @@ import {
   generateRandomObstacles,
 } from "../../utils/gridUtils";
 
-const SnakeBoard = () => {
-  const gridSize = 12;
-  const initialGridData = useMemo(
+const GRID_SIZE = 12;
+const OBSTACLE_COUNT = 8;
+const MOVE_INTERVAL = 200;
+const HIGH_SCORE_KEY = "snakeHighScore";
+
+const getInitialSnake = () => {
+  const mid = Math.floor(GRID_SIZE / 2);
+  return [
+    [mid, mid - 2],
+    [mid, mid - 1],
+    [mid, mid],
+  ];
+};
+
+export default function SnakeBoard() {
+  const initialGrid = useMemo(
     () =>
       initializeGridData(
-        gridSize,
-        gridSize,
+        GRID_SIZE,
+        GRID_SIZE,
         new CellTemplate("", "snake-cell", false, true, 0, true)
       ),
-    [gridSize]
+    []
   );
 
-  // Initial snake position (middle of the board)
-  const initialSnake = [
-    [Math.floor(gridSize / 2), Math.floor(gridSize / 2) - 2],
-    [Math.floor(gridSize / 2), Math.floor(gridSize / 2) - 1],
-    [Math.floor(gridSize / 2), Math.floor(gridSize / 2)],
-  ];
-
-  // Generate obstacles using the new utility function
-  const generateObstacles = useCallback(() => {
-    const initialSnakeRow = Math.floor(gridSize / 2);
-    const excludePositions = [
-      ...initialSnake,
-      // Exclude the entire middle row to give snake room to start
-      ...Array.from({ length: gridSize }, (_, col) => [initialSnakeRow, col]),
-    ];
-
-    return generateRandomObstacles(gridSize, 8, excludePositions);
-  }, [gridSize]);
-
-  const [gridData, setGridData] = useState(initialGridData);
-  const [snake, setSnake] = useState(initialSnake);
+  const [gridData, setGridData] = useState(initialGrid);
+  const [snake, setSnake] = useState(getInitialSnake());
   const [direction, setDirection] = useState("RIGHT");
   const [food, setFood] = useState(null);
   const [obstacles, setObstacles] = useState([]);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(
-    parseInt(localStorage.getItem("snakeHighScore")) || 0
+    () => parseInt(localStorage.getItem(HIGH_SCORE_KEY)) || 0
   );
+  const [running, setRunning] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [gameRunning, setGameRunning] = useState(false);
 
-  // Use refs to store current values for the game loop
-  const snakeRef = useRef(initialSnake);
-  const directionRef = useRef("RIGHT");
-  const foodRef = useRef(null);
-  const obstaclesRef = useRef([]);
-  const gameRunningRef = useRef(false);
-  const gameOverRef = useRef(false);
+  const snakeRef = useRef(snake);
+  const dirRef = useRef(direction);
+  const foodRef = useRef(food);
+  const obsRef = useRef(obstacles);
+  const runningRef = useRef(running);
+  const overRef = useRef(gameOver);
 
-  // Generate random food position not on snake or obstacles
-  const generateFood = useCallback(
-    (currentSnake, currentObstacles) => {
-      let newFood;
-      let attempts = 0;
-      do {
-        newFood = [
-          Math.floor(Math.random() * gridSize),
-          Math.floor(Math.random() * gridSize),
-        ];
-        attempts++;
-      } while (
-        (currentSnake.some(([r, c]) => r === newFood[0] && c === newFood[1]) ||
-          currentObstacles.some(
-            ([r, c]) => r === newFood[0] && c === newFood[1]
-          )) &&
-        attempts < 100
-      );
-      return newFood;
-    },
-    [gridSize]
-  );
+  useEffect(() => {
+    snakeRef.current = snake;
+  }, [snake]);
+  useEffect(() => {
+    dirRef.current = direction;
+  }, [direction]);
+  useEffect(() => {
+    foodRef.current = food;
+  }, [food]);
+  useEffect(() => {
+    obsRef.current = obstacles;
+  }, [obstacles]);
+  useEffect(() => {
+    runningRef.current = running;
+  }, [running]);
+  useEffect(() => {
+    overRef.current = gameOver;
+  }, [gameOver]);
 
-  // Update the grid display
-  const updateGrid = useCallback(
-    (snakePositions, foodPosition, obstaclePositions) => {
-      let newGrid = initialGridData;
-
-      // Place obstacles with isNavigable = false
-      obstaclePositions.forEach(([row, col]) => {
-        newGrid = updatedBoardCell(
-          newGrid,
-          [row, col],
-          new CellTemplate(
-            "🚧",
-            "snake-cell obstacle-cell",
-            false,
-            true,
-            0,
-            false
-          )
-        );
-      });
-
-      // Place snake
-      snakePositions.forEach(([row, col], index) => {
-        const isHead = index === snakePositions.length - 1;
-        newGrid = updatedBoardCell(
-          newGrid,
-          [row, col],
-          new CellTemplate(
-            isHead ? "🐍" : "●",
-            isHead ? "snake-cell snake-head" : "snake-cell snake-body"
-          )
-        );
-      });
-
-      // Place food
-      if (foodPosition) {
-        newGrid = updatedBoardCell(
-          newGrid,
-          foodPosition,
-          new CellTemplate("🍎", "snake-cell food-cell")
-        );
-      }
-
-      setGridData(newGrid);
-    },
-    [initialGridData]
-  );
-
-  // Handle direction change from GridBoard (with snake-specific logic)
-  const handleDirectionChange = useCallback((newDirection) => {
-    if (!gameRunningRef.current || gameOverRef.current) return;
-
-    const currentDirection = directionRef.current;
-
-    // Prevent reversing into itself
-    const opposites = {
-      UP: "DOWN",
-      DOWN: "UP",
-      LEFT: "RIGHT",
-      RIGHT: "LEFT",
-    };
-
-    if (opposites[currentDirection] !== newDirection) {
-      directionRef.current = newDirection;
-      setDirection(newDirection);
-    }
+  const generateObstacles = useCallback(() => {
+    const exclude = new Set(getInitialSnake().map(([r, c]) => `${r},${c}`));
+    const midRow = Math.floor(GRID_SIZE / 2);
+    for (let c = 0; c < GRID_SIZE; c++) exclude.add(`${midRow},${c}`);
+    const positions = Array.from(exclude).map((s) => s.split(",").map(Number));
+    return generateRandomObstacles(GRID_SIZE, OBSTACLE_COUNT, positions);
   }, []);
 
-  // Move the snake
+  const generateFood = useCallback(() => {
+    let pos;
+    do {
+      pos = [
+        Math.floor(Math.random() * GRID_SIZE),
+        Math.floor(Math.random() * GRID_SIZE),
+      ];
+    } while (
+      snakeRef.current.some(([r, c]) => r === pos[0] && c === pos[1]) ||
+      obsRef.current.some(([r, c]) => r === pos[0] && c === pos[1])
+    );
+    return pos;
+  }, []);
+
+  const updateGrid = useCallback(() => {
+    let grid = initialGrid;
+    obsRef.current.forEach(([r, c]) => {
+      grid = updatedBoardCell(
+        grid,
+        [r, c],
+        new CellTemplate(
+          "🚧",
+          "snake-cell obstacle-cell",
+          false,
+          true,
+          0,
+          false
+        )
+      );
+    });
+    snakeRef.current.forEach(([r, c], idx) => {
+      const isHead = idx === snakeRef.current.length - 1;
+      grid = updatedBoardCell(
+        grid,
+        [r, c],
+        new CellTemplate(
+          isHead ? "🐍" : "●",
+          isHead ? "snake-cell snake-head" : "snake-cell snake-body"
+        )
+      );
+    });
+    if (foodRef.current) {
+      grid = updatedBoardCell(
+        grid,
+        foodRef.current,
+        new CellTemplate("🍎", "snake-cell food-cell")
+      );
+    }
+    setGridData(grid);
+  }, [initialGrid]);
+
   const moveSnake = useCallback(() => {
-    if (gameOverRef.current || !gameRunningRef.current) return;
-
-    const currentSnake = [...snakeRef.current];
-    const head = currentSnake[currentSnake.length - 1];
-
-    // Use the new utility function
-    let newHead = getNextPosition(head, directionRef.current, gridSize);
-
-    // Wrap around the play-field
-    newHead = wrapPosition(newHead, gridSize);
-
-    // Check self-collision and obstacle collision
-    if (
-      currentSnake.some(([r, c]) => r === newHead[0] && c === newHead[1]) ||
-      obstaclesRef.current.some(
-        ([r, c]) => r === newHead[0] && c === newHead[1]
-      )
-    ) {
-      gameOverRef.current = true;
+    if (overRef.current || !runningRef.current) return;
+    const body = [...snakeRef.current];
+    let head = wrapPosition(
+      getNextPosition(body[body.length - 1], dirRef.current, GRID_SIZE),
+      GRID_SIZE
+    );
+    const hitSelf = body.some(([r, c]) => r === head[0] && c === head[1]);
+    const hitObs = obsRef.current.some(
+      ([r, c]) => r === head[0] && c === head[1]
+    );
+    if (hitSelf || hitObs) {
       setGameOver(true);
-      setGameRunning(false);
+      setRunning(false);
       return;
     }
-
-    // Calculate new snake state
-    let newSnake = [...currentSnake, newHead];
-
-    // Check if ate food
-    if (
+    const ate =
       foodRef.current &&
-      newHead[0] === foodRef.current[0] &&
-      newHead[1] === foodRef.current[1]
-    ) {
-      setScore((prev) => prev + 10);
-      const newFood = generateFood(newSnake, obstaclesRef.current);
-      foodRef.current = newFood;
+      head[0] === foodRef.current[0] &&
+      head[1] === foodRef.current[1];
+    const newSnake = ate ? [...body, head] : [...body.slice(1), head];
+    setSnake(newSnake);
+    if (ate) {
+      setScore((s) => s + 10);
+      const newFood = generateFood();
       setFood(newFood);
-    } else {
-      // Remove tail if didn't eat
-      newSnake.shift();
     }
+  }, [generateFood]);
 
-    // Update refs and state
-    snakeRef.current = newSnake;
-    setSnake(newSnake);
-  }, [generateFood, gridSize]);
-
-  // Start or restart game
   const startGame = () => {
-    const newSnake = [...initialSnake];
-    const newObstacles = generateObstacles();
-    const newFood = generateFood(newSnake, newObstacles);
-
-    // Update state
+    const newSnake = getInitialSnake();
     setSnake(newSnake);
+    snakeRef.current = newSnake;
+
     setDirection("RIGHT");
+    dirRef.current = "RIGHT";
+
+    const newObs = generateObstacles();
+    setObstacles(newObs);
+    obsRef.current = newObs;
+
+    const newFood = generateFood();
     setFood(newFood);
-    setObstacles(newObstacles);
+    foodRef.current = newFood;
+
     setScore(0);
     setGameOver(false);
-    setGameRunning(true);
+    overRef.current = false;
+    setRunning(true);
+    runningRef.current = true;
 
-    // Update refs
-    snakeRef.current = newSnake;
-    directionRef.current = "RIGHT";
-    foodRef.current = newFood;
-    obstaclesRef.current = newObstacles;
-    gameRunningRef.current = true;
-    gameOverRef.current = false;
-
-    updateGrid(newSnake, newFood, newObstacles);
+    updateGrid();
   };
 
-  // Game loop
   useEffect(() => {
-    let gameInterval;
+    if (!running || gameOver) return;
+    const id = setInterval(moveSnake, MOVE_INTERVAL);
+    return () => clearInterval(id);
+  }, [running, gameOver, moveSnake]);
 
-    if (gameRunning && !gameOver) {
-      gameInterval = setInterval(moveSnake, 200);
-    }
+  useEffect(updateGrid, [snake, food, obstacles, updateGrid]);
 
-    return () => {
-      if (gameInterval) {
-        clearInterval(gameInterval);
-      }
-    };
-  }, [gameRunning, gameOver, moveSnake]);
-
-  // Update grid when snake, food, or obstacles change
   useEffect(() => {
-    updateGrid(snake, food, obstacles);
-  }, [snake, food, obstacles, updateGrid]);
-
-  // Handle game over
-  useEffect(() => {
-    if (gameOver) {
-      gameRunningRef.current = false;
-
-      // Update high score
-      if (score > highScore) {
-        setHighScore(score);
-        localStorage.setItem("snakeHighScore", score.toString());
-      }
+    if (gameOver && score > highScore) {
+      setHighScore(score);
+      localStorage.setItem(HIGH_SCORE_KEY, score.toString());
     }
   }, [gameOver, score, highScore]);
 
-  // Initialize food and obstacles on first load
-  useEffect(() => {
-    if (!food && obstacles.length === 0) {
-      const newObstacles = generateObstacles();
-      const newFood = generateFood(initialSnake, newObstacles);
-      setObstacles(newObstacles);
-      setFood(newFood);
-      obstaclesRef.current = newObstacles;
-      foodRef.current = newFood;
+  const onDirectionChange = (newDir) => {
+    const opposites = { UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT" };
+    if (running && !gameOver && opposites[direction] !== newDir) {
+      setDirection(newDir);
     }
-  }, [food, obstacles.length, generateFood, generateObstacles]);
+  };
 
   return (
-    <div className="snake-container">
+    <div style={{ padding: 20, textAlign: "center" }}>
       <h2>Snake Game</h2>
-      <div style={{ marginBottom: "15px", textAlign: "center" }}>
+      <div style={{ marginBottom: 15 }}>
         <p style={{ margin: "5px 0" }}>
           <strong>Score: {score}</strong> | High Score: {highScore}
         </p>
         {gameOver ? (
-          <p style={{ color: "red", fontSize: "18px", fontWeight: "bold" }}>
+          <p style={{ color: "red", fontSize: 18, fontWeight: "bold" }}>
             💀 Game Over! Final Score: {score}
           </p>
-        ) : gameRunning ? (
+        ) : running ? (
           <p style={{ color: "green" }}>
             🎮 Use Arrow Keys or WASD to move | Snake wraps around edges!
           </p>
@@ -298,27 +234,23 @@ const SnakeBoard = () => {
           onClick={startGame}
           style={{
             padding: "10px 20px",
-            fontSize: "16px",
-            backgroundColor: gameRunning ? "#ff6b6b" : "#4ecdc4",
+            fontSize: 16,
+            backgroundColor: running ? "#ff6b6b" : "#4ecdc4",
             color: "white",
             border: "none",
-            borderRadius: "5px",
+            borderRadius: 5,
             cursor: "pointer",
           }}
         >
-          {gameRunning ? "Restart Game" : "Start Game"}
+          {running ? "Restart Game" : "Start Game"}
         </button>
       </div>
-      <div className="snake-board">
-        <GridBoard
-          gridData={gridData}
-          enableKeyboardMovement={true}
-          onDirectionChange={handleDirectionChange}
-          gameRunning={gameRunning}
-        />
-      </div>
+      <GridBoard
+        gridData={gridData}
+        enableKeyboardMovement
+        onDirectionChange={onDirectionChange}
+        gameRunning={running}
+      />
     </div>
   );
-};
-
-export default SnakeBoard;
+}
