@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import ReactModal from "react-modal";
 
-import { CartContext } from "../context/CartProvider";
+import { GridBoardContext } from "../context/ContextProvider";
 
 const basicStyles = {
   top: "50%",
@@ -36,7 +36,7 @@ const customDarkStyles = {
 ReactModal.setAppElement("#root");
 
 export default function Modal(props) {
-  const { isDarkMode } = useContext(CartContext);
+  const { isDarkMode } = useContext(GridBoardContext);
   const { modalType, modalIsOpen, setModalIsOpen, message, handleClickYes } =
     props;
 

@@ -1,12 +1,12 @@
 import { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { CartContext } from "../context/CartProvider";
+import { GridBoardContext } from "../context/ContextProvider";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from "../../assets/logo.png";
 
-export default function Navbar(props) {
-  const { cartItems, isDarkMode, setIsDarkMode } = useContext(CartContext);
+export default function Navbar() {
+  const { isDarkMode, setIsDarkMode } = useContext(GridBoardContext);
   const [menuIsOpen, setMenuIsOpen] = useState(false);
 
   return (
@@ -16,25 +16,7 @@ export default function Navbar(props) {
           <img src={logo} alt="Logo" onClick={() => setMenuIsOpen(false)} />
         </NavLink>
         <div className="links-container">
-          <div className="main-links">
-            <NavLink to="/products">Products</NavLink>
-            <NavLink to="/about">About</NavLink>
-            <NavLink to="/contact">Contact</NavLink>
-          </div>
-          <div className="cart-button-wrapper">
-            <NavLink to="/cart" style={{ textDecoration: "none" }}>
-              <div className="cart-button">
-                <FontAwesomeIcon icon="fa-cart-shopping" />
-                <p>
-                  {
-                    cartItems.filter((item) => {
-                      return item.count > 0;
-                    }).length
-                  }
-                </p>
-              </div>
-            </NavLink>
-          </div>
+          <div className="main-links"></div>
         </div>
         <div className="navbar-right">
           <div
