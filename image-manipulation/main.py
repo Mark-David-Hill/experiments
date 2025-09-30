@@ -1,6 +1,7 @@
-import numpy as np
-from PIL import Image
+from scipy.signal import convolve2d
 import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
 
 def load_image(image_path):
     img = Image.open(image_path)
