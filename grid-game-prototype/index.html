@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Game Prototype</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Grid Game Prototype</h1>
+        <div class="game-info">
+            <div class="info-panel">
+                <div id="current-player">Current Player: <span>P1</span></div>
+                <div id="actions-remaining">Actions Remaining: <span>5</span></div>
+            </div>
+            <div class="controls-info">
+                <p>Controls: Arrow Keys (Change Direction/Move Forward) | Click Highlighted Spaces (Move/Undo) | Space (Place/Kick Bomb in Front) | Enter (End Turn Early)</p>
+            </div>
+        </div>
+        <div id="grid" class="grid"></div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
+
