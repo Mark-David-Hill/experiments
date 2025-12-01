@@ -127,6 +127,22 @@ function getDirectionArrow(direction) {
   }
 }
 
+// Helper function to get row/col offsets for a direction
+function getDirectionOffset(direction) {
+  switch (direction) {
+    case "up":
+      return { dr: -1, dc: 0 };
+    case "down":
+      return { dr: 1, dc: 0 };
+    case "left":
+      return { dr: 0, dc: -1 };
+    case "right":
+      return { dr: 0, dc: 1 };
+    default:
+      return { dr: 0, dc: 0 };
+  }
+}
+
 function changeDirection(player, direction) {
   if (gameState.gameOver) {
     return false;
@@ -352,25 +368,9 @@ function movePlayer(player) {
 function getFrontCell(player) {
   const pos = gameState.playerPositions[player];
   const direction = gameState.playerDirections[player];
-  let frontRow = pos.row;
-  let frontCol = pos.col;
+  const offset = getDirectionOffset(direction);
 
-  switch (direction) {
-    case "up":
-      frontRow--;
-      break;
-    case "down":
-      frontRow++;
-      break;
-    case "left":
-      frontCol--;
-      break;
-    case "right":
-      frontCol++;
-      break;
-  }
-
-  return { row: frontRow, col: frontCol };
+  return { row: pos.row + offset.dr, col: pos.col + offset.dc };
 }
 
 function placeBombInFront() {
@@ -433,25 +433,12 @@ function kickBombInFront() {
   // Move bomb as far as possible in the direction
   let currentRow = front.row;
   let currentCol = front.col;
-  let nextRow = currentRow;
-  let nextCol = currentCol;
+  const offset = getDirectionOffset(direction);
 
   while (true) {
     // Calculate next position
-    switch (direction) {
-      case "up":
-        nextRow--;
-        break;
-      case "down":
-        nextRow++;
-        break;
-      case "left":
-        nextCol--;
-        break;
-      case "right":
-        nextCol++;
-        break;
-    }
+    const nextRow = currentRow + offset.dr;
+    const nextCol = currentCol + offset.dc;
 
     // Check if next position is valid (bomb can't move through walls, players, or other bombs)
     const nextCellType = getCellType(nextRow, nextCol);
