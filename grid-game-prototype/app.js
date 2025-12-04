@@ -58,6 +58,7 @@ let gameState = {
   gameOver: false,
   winner: null, // "p1", "p2", or "tie"
   isProcessingTurn: false, // Flag to prevent input during AI turns
+  isFirstTurn: true, // Flag to track if it's the first turn of the game
 };
 
 // Add helper function to find kickable bombs around a position
@@ -212,7 +213,7 @@ function startGame() {
 function resetGameState() {
   gameState = {
     currentPlayer: "p1",
-    actionsRemaining: ACTIONS_PER_TURN,
+    actionsRemaining: 3, // First player's first turn gets 3 actions
     playerPositions: {
       p1: { row: 1, col: 1 },
       p2: { row: 5, col: 5 },
@@ -230,7 +231,7 @@ function resetGameState() {
       p2: { row: 5, col: 5 },
     },
     highlightActionsRemaining: {
-      p1: ACTIONS_PER_TURN,
+      p1: 3, // First player's first turn gets 3 actions
       p2: ACTIONS_PER_TURN,
     },
     visitedSpaces: {
@@ -242,6 +243,7 @@ function resetGameState() {
     gameOver: false,
     winner: null,
     isProcessingTurn: false,
+    isFirstTurn: true, // Track that this is the first turn
   };
 }
 
@@ -1244,6 +1246,22 @@ function getAvailableAIActions(player) {
   // Check if can place bomb in front
   const front = getFrontCell(player);
   const frontCellType = getCellType(front.row, front.col);
+
+  // Check if can kick player in front (only if there's empty space to move them to)
+  if (frontCellType === "p1" || frontCellType === "p2") {
+    const direction = gameState.playerDirections[player];
+    const offset = getDirectionOffset(direction);
+    const kickToRow = front.row + offset.dr;
+    const kickToCol = front.col + offset.dc;
+    const targetCellType = getCellType(kickToRow, kickToCol);
+    const targetHasBomb = findBombAt(kickToRow, kickToCol) !== -1;
+
+    // Can kick player if target is empty floor with no bomb
+    if (targetCellType === "f" && !targetHasBomb) {
+      actions.push({ type: "kickBomb" }); // Uses same action type, function handles both
+    }
+  }
+
   if (frontCellType === "f" && findBombAt(front.row, front.col) === -1) {
     actions.push({ type: "placeBomb" });
   }
@@ -1270,7 +1288,10 @@ function initializeGridState() {
       if (gameState.grid[row][col] === "p1") {
         gameState.playerPositions.p1 = { row, col };
         gameState.highlightOrigin.p1 = { row, col };
-        gameState.highlightActionsRemaining.p1 = ACTIONS_PER_TURN;
+        // First player's first turn gets 3 actions, otherwise 5
+        gameState.highlightActionsRemaining.p1 = gameState.isFirstTurn
+          ? 3
+          : ACTIONS_PER_TURN;
         gameState.visitedSpaces.p1 = new Set();
         // Add starting position as visited
         gameState.visitedSpaces.p1.add(`${row},${col}`);
@@ -1283,6 +1304,13 @@ function initializeGridState() {
         gameState.visitedSpaces.p2.add(`${row},${col}`);
       }
     }
+  }
+
+  // Update actionsRemaining to match the current player's highlightActionsRemaining
+  if (gameState.currentPlayer === "p1" && gameState.isFirstTurn) {
+    gameState.actionsRemaining = 3;
+  } else {
+    gameState.actionsRemaining = ACTIONS_PER_TURN;
   }
 }
 
@@ -1635,13 +1663,103 @@ function placeBombInFront() {
   return true;
 }
 
+// Helper function to kick a player (move them one space away)
+function kickPlayerInFront() {
+  if (gameState.actionsRemaining <= 0 || gameState.gameOver) {
+    return false;
+  }
+
+  const front = getFrontCell(gameState.currentPlayer);
+  const cellType = getCellType(front.row, front.col);
+
+  // Check if there's a player in front
+  const playerToKick =
+    cellType === "p1" ? "p1" : cellType === "p2" ? "p2" : null;
+  if (!playerToKick) {
+    return false; // No player to kick
+  }
+
+  // Can't kick yourself
+  if (playerToKick === gameState.currentPlayer) {
+    return false;
+  }
+
+  const direction = gameState.playerDirections[gameState.currentPlayer];
+  const offset = getDirectionOffset(direction);
+
+  // Calculate where the player would be kicked to (one space away)
+  const kickToRow = front.row + offset.dr;
+  const kickToCol = front.col + offset.dc;
+
+  // Check if the target position is valid (empty floor, no bomb, no wall, no player)
+  const targetCellType = getCellType(kickToRow, kickToCol);
+  const targetHasBomb = findBombAt(kickToRow, kickToCol) !== -1;
+
+  if (
+    targetCellType !== "f" ||
+    targetHasBomb ||
+    targetCellType === "p1" ||
+    targetCellType === "p2"
+  ) {
+    return false; // Can't kick player - no empty space available
+  }
+
+  // Move the player to the new position
+  const playerPos = gameState.playerPositions[playerToKick];
+
+  // Clear the old position (check if there's a bomb there)
+  const oldBombIndex = findBombAt(playerPos.row, playerPos.col);
+  if (oldBombIndex !== -1) {
+    gameState.grid[playerPos.row][playerPos.col] = "bomb";
+  } else {
+    gameState.grid[playerPos.row][playerPos.col] = "f";
+  }
+
+  // Set the new position
+  gameState.grid[kickToRow][kickToCol] = playerToKick;
+  gameState.playerPositions[playerToKick] = { row: kickToRow, col: kickToCol };
+
+  // Use action
+  useAction();
+
+  // Update highlight origin to current position and recalculate with new remaining actions
+  const pos = gameState.playerPositions[gameState.currentPlayer];
+  gameState.highlightOrigin[gameState.currentPlayer] = {
+    row: pos.row,
+    col: pos.col,
+  };
+  gameState.highlightActionsRemaining[gameState.currentPlayer] =
+    gameState.actionsRemaining;
+
+  // Reset move history - can't undo past a player kick
+  gameState.moveHistory[gameState.currentPlayer] = [
+    { row: pos.row, col: pos.col },
+  ];
+
+  // Reset visited spaces when player is kicked - start fresh from current position
+  gameState.visitedSpaces[gameState.currentPlayer].clear();
+  // Add current position as the new starting visited space
+  gameState.visitedSpaces[gameState.currentPlayer].add(`${pos.row},${pos.col}`);
+
+  // Re-render to update highlighting from current position with new remaining actions
+  renderGrid();
+  return true;
+}
+
 // Update kickBombInFront to not use action if bomb can't move
+// Also handles kicking players (which takes priority over bombs)
 function kickBombInFront() {
   if (gameState.actionsRemaining <= 0 || gameState.gameOver) {
     return false;
   }
 
   const front = getFrontCell(gameState.currentPlayer);
+
+  // First check if there's a player in front - kick player takes priority
+  const cellType = getCellType(front.row, front.col);
+  if (cellType === "p1" || cellType === "p2") {
+    return kickPlayerInFront();
+  }
 
   // Check if there's a bomb in front of the player
   const bombIndex = findBombAt(front.row, front.col);
@@ -1650,7 +1768,126 @@ function kickBombInFront() {
   }
 
   const direction = gameState.playerDirections[gameState.currentPlayer];
+  const offset = getDirectionOffset(direction);
 
+  // First, check if there are bombs beyond the bomb in front, with empty space past them
+  // If so, we'll kick the farthest bomb instead
+  let checkRow = front.row;
+  let checkCol = front.col;
+  let lastBombFound = null;
+  let lastBombIndex = -1;
+  let foundEmptySpaceAfterBombs = false;
+  let emptySpaceRow = -1;
+  let emptySpaceCol = -1;
+
+  // Start checking from the position after the bomb in front
+  checkRow = front.row + offset.dr;
+  checkCol = front.col + offset.dc;
+
+  // Scan forward to find chain of bombs with empty space at the end
+  while (true) {
+    const cellType = getCellType(checkRow, checkCol);
+    const hasBomb = findBombAt(checkRow, checkCol) !== -1;
+
+    // Stop if we hit a wall or player
+    if (cellType === "w" || cellType === "p1" || cellType === "p2") {
+      break;
+    }
+
+    // If we find a bomb, track it
+    if (hasBomb) {
+      lastBombFound = { row: checkRow, col: checkCol };
+      lastBombIndex = findBombAt(checkRow, checkCol);
+      // Continue scanning to find empty space past this bomb
+    } else {
+      // Found empty space
+      // If we've seen bombs before, this is the empty space we're looking for
+      if (lastBombFound !== null) {
+        // Found empty space after bombs - now find the farthest empty space
+        foundEmptySpaceAfterBombs = true;
+        emptySpaceRow = checkRow;
+        emptySpaceCol = checkCol;
+
+        // Continue scanning to find the farthest empty space we can reach
+        let farthestRow = checkRow;
+        let farthestCol = checkCol;
+        let nextCheckRow = checkRow + offset.dr;
+        let nextCheckCol = checkCol + offset.dc;
+
+        while (true) {
+          const nextCellType = getCellType(nextCheckRow, nextCheckCol);
+          const nextHasBomb = findBombAt(nextCheckRow, nextCheckCol) !== -1;
+
+          // Stop if we hit a wall, player, or another bomb
+          if (
+            nextCellType === "w" ||
+            nextCellType === "p1" ||
+            nextCellType === "p2" ||
+            nextHasBomb
+          ) {
+            break;
+          }
+
+          // This is valid empty space, update farthest position
+          farthestRow = nextCheckRow;
+          farthestCol = nextCheckCol;
+          nextCheckRow += offset.dr;
+          nextCheckCol += offset.dc;
+        }
+
+        emptySpaceRow = farthestRow;
+        emptySpaceCol = farthestCol;
+        break;
+      } else {
+        // No bombs found yet, just empty space - this is normal case
+        break;
+      }
+    }
+
+    // Move to next position
+    checkRow += offset.dr;
+    checkCol += offset.dc;
+  }
+
+  // If we found bombs with empty space past them, kick the farthest bomb
+  if (foundEmptySpaceAfterBombs && lastBombIndex !== -1) {
+    // Move the farthest bomb to the empty space
+    const bomb = gameState.bombs[lastBombIndex];
+    gameState.bombs[lastBombIndex] = {
+      row: emptySpaceRow,
+      col: emptySpaceCol,
+      timer: bomb.timer,
+    };
+
+    useAction();
+
+    // Update highlight origin to current position and recalculate with new remaining actions
+    const pos = gameState.playerPositions[gameState.currentPlayer];
+    gameState.highlightOrigin[gameState.currentPlayer] = {
+      row: pos.row,
+      col: pos.col,
+    };
+    gameState.highlightActionsRemaining[gameState.currentPlayer] =
+      gameState.actionsRemaining;
+
+    // Reset move history - can't undo past a bomb kick
+    gameState.moveHistory[gameState.currentPlayer] = [
+      { row: pos.row, col: pos.col },
+    ];
+
+    // Reset visited spaces when bomb is kicked - start fresh from current position
+    gameState.visitedSpaces[gameState.currentPlayer].clear();
+    // Add current position as the new starting visited space
+    gameState.visitedSpaces[gameState.currentPlayer].add(
+      `${pos.row},${pos.col}`
+    );
+
+    // Re-render to update highlighting from current position with new remaining actions
+    renderGrid();
+    return true;
+  }
+
+  // Otherwise, use normal bomb kicking logic for the bomb directly in front
   // Check if bomb can actually be kicked
   if (!canBombBeKicked(front.row, front.col, direction)) {
     return false; // Don't use action if bomb can't move
@@ -1659,7 +1896,6 @@ function kickBombInFront() {
   // Move bomb as far as possible in the direction
   let currentRow = front.row;
   let currentCol = front.col;
-  const offset = getDirectionOffset(direction);
 
   while (true) {
     // Calculate next position
@@ -1747,6 +1983,11 @@ function endTurn() {
 
   // Switch to next player immediately for visual feedback
   gameState.currentPlayer = gameState.currentPlayer === "p1" ? "p2" : "p1";
+
+  // After the first turn ends, all subsequent turns get the normal number of actions
+  if (gameState.isFirstTurn) {
+    gameState.isFirstTurn = false;
+  }
   gameState.actionsRemaining = ACTIONS_PER_TURN;
 
   // Initialize move history and highlight origin for new player
@@ -2426,12 +2667,16 @@ function handleCellClick(row, col) {
     return;
   }
 
-  // Check if clicking on bomb in front - kick it
+  // Check if clicking on bomb or player in front - kick it/them
   const front = getFrontCell(player);
   if (row === front.row && col === front.col) {
-    if (findBombAt(row, col) !== -1) {
+    const frontCellType = getCellType(row, col);
+    if (frontCellType === "p1" || frontCellType === "p2") {
+      // Try to kick the player
+      kickBombInFront(); // This function now handles both players and bombs
+    } else if (findBombAt(row, col) !== -1) {
       kickBombInFront();
-    } else if (getCellType(row, col) === "f") {
+    } else if (frontCellType === "f") {
       placeBombInFront();
     }
   }
