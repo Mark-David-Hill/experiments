@@ -1,0 +1,13 @@
+{
+  "name": "smash-up-game",
+  "version": "1.0.0",
+  "description": "Smash Up card game in TypeScript",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
