@@ -1,12 +1,16 @@
 {
-  "card-types": [
+  "card-types": {
     "aliens-faction": [
       {
         "name": "Card 1",
         "description": "Card 1 description",
         "power": 1
+      },
+      {
+        "name": "Card 2",
+        "description": "Card 2 description",
+        "power": 2
       }
     ]
-    
-  ]
+  }
 }

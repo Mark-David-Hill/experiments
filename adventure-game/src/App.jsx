@@ -1,9 +1,46 @@
+import { useState } from 'react'
 import './App.css'
+import OverworldMap from './components/OverworldMap'
+import TravelMap from './components/TravelMap'
+import { overworldMap } from './data/overworldMap'
 
 function App() {
+  const [currentView, setCurrentView] = useState('overworld') // 'overworld' or 'travel'
+  const [currentPath, setCurrentPath] = useState(null)
+  const [currentConnection, setCurrentConnection] = useState(null)
+  const [currentPoint, setCurrentPoint] = useState('a')
+
+  const handleTravel = (pathId, connection) => {
+    setCurrentPath(pathId)
+    setCurrentConnection(connection)
+    setCurrentView('travel')
+  }
+
+  const handleReturnToOverworld = () => {
+    // Update current point to the destination
+    if (currentConnection) {
+      setCurrentPoint(currentConnection.to)
+    }
+    setCurrentView('overworld')
+    setCurrentPath(null)
+    setCurrentConnection(null)
+  }
+
   return (
     <div className="app">
       <h1>Adventure Game</h1>
+      {currentView === 'overworld' ? (
+        <OverworldMap
+          currentPoint={currentPoint}
+          onTravel={handleTravel}
+        />
+      ) : (
+        <TravelMap
+          pathId={currentPath}
+          connection={currentConnection}
+          onReturn={handleReturnToOverworld}
+        />
+      )}
     </div>
   )
 }
