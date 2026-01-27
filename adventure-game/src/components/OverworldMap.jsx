@@ -1,33 +1,59 @@
 import { useState } from 'react'
 import './OverworldMap.css'
 import { overworldMap } from '../data/overworldMap'
+import TravelModal from './TravelModal'
 
 function OverworldMap({ currentPoint, onTravel }) {
-  const [selectedPoint, setSelectedPoint] = useState(currentPoint || 'a')
+  const [modalConnection, setModalConnection] = useState(null)
 
-  const handlePointClick = (pointId) => {
-    setSelectedPoint(pointId)
-  }
-
-  const handleTravelClick = (connection) => {
-    if (connection.from === selectedPoint || connection.to === selectedPoint) {
-      onTravel(connection.pathId, connection)
-    }
-  }
-
-  const getAvailablePaths = () => {
-    return overworldMap.connections.filter(
-      (conn) => conn.from === selectedPoint || conn.to === selectedPoint
+  const isPointReachable = (pointId) => {
+    if (pointId === currentPoint) return false
+    return overworldMap.connections.some(
+      (conn) =>
+        (conn.from === currentPoint && conn.to === pointId) ||
+        (conn.to === currentPoint && conn.from === pointId)
     )
   }
 
-  const getOtherPoint = (connection) => {
-    return connection.from === selectedPoint ? connection.to : connection.from
+  const getConnectionToPoint = (pointId) => {
+    return overworldMap.connections.find(
+      (conn) =>
+        (conn.from === currentPoint && conn.to === pointId) ||
+        (conn.to === currentPoint && conn.from === pointId)
+    )
+  }
+
+  const handlePointClick = (pointId) => {
+    if (isPointReachable(pointId)) {
+      const connection = getConnectionToPoint(pointId)
+      setModalConnection(connection)
+    }
+  }
+
+  const handleConfirmTravel = () => {
+    if (modalConnection) {
+      onTravel(modalConnection.pathId, modalConnection)
+      setModalConnection(null)
+    }
+  }
+
+  const handleCancelTravel = () => {
+    setModalConnection(null)
+  }
+
+  const getDestinationPoint = (connection) => {
+    return connection.from === currentPoint
+      ? overworldMap.points[connection.to]
+      : overworldMap.points[connection.from]
   }
 
   return (
     <div className="overworld-map">
       <h2>Overworld Map</h2>
+      <div className="current-point-info">
+        <p>Current Point: <strong>{overworldMap.points[currentPoint]?.label}</strong></p>
+        <p className="hint">Click on a connected point to travel</p>
+      </div>
       <div className="map-container">
         <svg className="map-svg" viewBox="0 0 600 350">
           {/* Draw connections */}
@@ -47,55 +73,42 @@ function OverworldMap({ currentPoint, onTravel }) {
           })}
 
           {/* Draw points */}
-          {Object.values(overworldMap.points).map((point) => (
-            <g key={point.id}>
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={20}
-                className={`map-point ${point.id === selectedPoint ? 'selected' : ''}`}
-                onClick={() => handlePointClick(point.id)}
-              />
-              <text
-                x={point.x}
-                y={point.y - 30}
-                textAnchor="middle"
-                className="point-label"
-              >
-                {point.label}
-              </text>
-            </g>
-          ))}
+          {Object.values(overworldMap.points).map((point) => {
+            const isReachable = isPointReachable(point.id)
+            const isCurrent = point.id === currentPoint
+            return (
+              <g key={point.id}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={20}
+                  className={`map-point ${
+                    isCurrent ? 'current' : isReachable ? 'reachable' : 'unreachable'
+                  }`}
+                  onClick={() => handlePointClick(point.id)}
+                />
+                <text
+                  x={point.x}
+                  y={point.y - 30}
+                  textAnchor="middle"
+                  className="point-label"
+                >
+                  {point.label}
+                </text>
+              </g>
+            )
+          })}
         </svg>
       </div>
 
-      <div className="map-controls">
-        <div className="current-point">
-          <p>Current Point: <strong>{overworldMap.points[selectedPoint]?.label}</strong></p>
-        </div>
-        <div className="available-paths">
-          <h3>Available Paths:</h3>
-          {getAvailablePaths().length > 0 ? (
-            <ul>
-              {getAvailablePaths().map((connection) => {
-                const otherPoint = getOtherPoint(connection)
-                return (
-                  <li key={connection.pathId}>
-                    <button
-                      onClick={() => handleTravelClick(connection)}
-                      className="travel-button"
-                    >
-                      Travel to {overworldMap.points[otherPoint]?.label}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          ) : (
-            <p>No paths available from this point.</p>
-          )}
-        </div>
-      </div>
+      {modalConnection && (
+        <TravelModal
+          fromPoint={overworldMap.points[currentPoint]}
+          toPoint={getDestinationPoint(modalConnection)}
+          onConfirm={handleConfirmTravel}
+          onCancel={handleCancelTravel}
+        />
+      )}
     </div>
   )
 }

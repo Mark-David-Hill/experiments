@@ -2,6 +2,25 @@
   padding: 2rem;
 }
 
+.current-point-info {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.current-point-info p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.hint {
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
 .map-container {
   border: 2px solid #333;
   border-radius: 8px;
@@ -23,22 +42,32 @@
 }
 
 .map-point {
-  fill: #4a90e2;
-  stroke: #2c5aa0;
   stroke-width: 2;
-  cursor: pointer;
   transition: all 0.2s;
 }
 
-.map-point:hover {
+.map-point.current {
+  fill: #e24a4a;
+  stroke: #a02c2c;
+  cursor: default;
+}
+
+.map-point.reachable {
+  fill: #4a90e2;
+  stroke: #2c5aa0;
+  cursor: pointer;
+}
+
+.map-point.reachable:hover {
   fill: #6ba3f0;
   r: 25;
 }
 
-.map-point.selected {
-  fill: #e24a4a;
-  stroke: #a02c2c;
-  r: 25;
+.map-point.unreachable {
+  fill: #ccc;
+  stroke: #999;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .point-label {
@@ -46,46 +75,4 @@
   font-size: 14px;
   font-weight: bold;
   pointer-events: none;
-}
-
-.map-controls {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.current-point {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-}
-
-.available-paths h3 {
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-}
-
-.available-paths ul {
-  list-style: none;
-  padding: 0;
-}
-
-.available-paths li {
-  margin: 0.5rem 0;
-}
-
-.travel-button {
-  padding: 0.75rem 1.5rem;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.2s;
-}
-
-.travel-button:hover {
-  background: #2c5aa0;
 }
