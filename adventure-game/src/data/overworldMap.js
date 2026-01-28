@@ -1,5 +1,5 @@
 // Overworld map data structure
-// Points are connected to each other, forming paths
+// Paths connect multiple points - you can enter from any point and exit to any connected point
 export const overworldMap = {
   points: {
     a: { id: 'a', x: 100, y: 100, label: 'Point A' },
@@ -8,14 +8,32 @@ export const overworldMap = {
     d: { id: 'd', x: 200, y: 250, label: 'Point D' },
     e: { id: 'e', x: 400, y: 250, label: 'Point E' },
   },
-  // Connections represent paths between points
-  // Each connection has a unique pathId for the travel map
-  connections: [
-    { from: 'a', to: 'b', pathId: 'a-to-b' },
-    { from: 'a', to: 'd', pathId: 'a-to-d' },
-    { from: 'b', to: 'c', pathId: 'b-to-c' },
-    { from: 'b', to: 'e', pathId: 'b-to-e' },
-    { from: 'c', to: 'e', pathId: 'c-to-e' },
-    { from: 'd', to: 'e', pathId: 'd-to-e' },
+  // Paths connect multiple points - you can enter from any connected point
+  // and exit to any other connected point
+  paths: [
+    { 
+      pathId: 'a-b', 
+      connectedPoints: ['a', 'b'],
+      name: 'Forest Path',
+      description: 'A winding forest path',
+    },
+    { 
+      pathId: 'a-d', 
+      connectedPoints: ['a', 'd'],
+      name: 'Mountain Trail',
+      description: 'A rocky mountain trail',
+    },
+    { 
+      pathId: 'b-c-e', 
+      connectedPoints: ['b', 'c', 'e'], // ONE path connecting B, C, and E
+      name: 'Desert Crossing',
+      description: 'A desert crossing with multiple routes',
+    },
+    { 
+      pathId: 'b-d-e', 
+      connectedPoints: ['b', 'd', 'e'], // D connects to B and E, not C
+      name: 'River Valley',
+      description: 'A river valley network',
+    },
   ],
 }

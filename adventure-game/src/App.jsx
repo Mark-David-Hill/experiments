@@ -16,11 +16,20 @@ function App() {
     setCurrentView('travel')
   }
 
-  const handleReturnToOverworld = () => {
-    // Update current point to the destination
-    if (currentConnection) {
+  const handleArrive = (destination) => {
+    // Update current point to the destination (which may differ from connection.to due to branches)
+    if (destination) {
+      setCurrentPoint(destination)
+    } else if (currentConnection) {
       setCurrentPoint(currentConnection.to)
     }
+    setCurrentView('overworld')
+    setCurrentPath(null)
+    setCurrentConnection(null)
+  }
+
+  const handleReturnToOverworld = () => {
+    // Don't update current point if returning without arriving
     setCurrentView('overworld')
     setCurrentPath(null)
     setCurrentConnection(null)
@@ -39,6 +48,7 @@ function App() {
           pathId={currentPath}
           connection={currentConnection}
           onReturn={handleReturnToOverworld}
+          onArrive={handleArrive}
         />
       )}
     </div>

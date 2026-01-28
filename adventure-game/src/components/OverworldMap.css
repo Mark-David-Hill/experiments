@@ -36,38 +36,58 @@
 }
 
 .connection-line {
-  stroke: #999;
-  stroke-width: 2;
+  stroke: #ccc;
+  stroke-width: 3;
   pointer-events: none;
+  opacity: 0.4;
+}
+
+.connection-line.available {
+  stroke: #4a90e2;
+  opacity: 0.6;
+}
+
+.path-clickable {
+  stroke: transparent;
+  stroke-width: 20;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.path-clickable:hover {
+  stroke: rgba(74, 144, 226, 0.2);
+}
+
+.path-label-bg {
+  fill: white;
+  stroke: #4a90e2;
+  stroke-width: 2;
+  rx: 4;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.path-label-bg:hover {
+  fill: #f0f7ff;
+}
+
+.path-label {
+  fill: #4a90e2;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: all;
 }
 
 .map-point {
   stroke-width: 2;
   transition: all 0.2s;
+  pointer-events: none;
 }
 
 .map-point.current {
   fill: #e24a4a;
   stroke: #a02c2c;
-  cursor: default;
-}
-
-.map-point.reachable {
-  fill: #4a90e2;
-  stroke: #2c5aa0;
-  cursor: pointer;
-}
-
-.map-point.reachable:hover {
-  fill: #6ba3f0;
-  r: 25;
-}
-
-.map-point.unreachable {
-  fill: #ccc;
-  stroke: #999;
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 
 .point-label {
@@ -75,4 +95,68 @@
   font-size: 14px;
   font-weight: bold;
   pointer-events: none;
+}
+
+.available-paths-list {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.available-paths-list h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.path-card {
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border: 2px solid #4a90e2;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.path-card:hover {
+  background: #f0f7ff;
+  border-color: #2c5aa0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.path-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #4a90e2;
+  font-size: 1.1rem;
+}
+
+.path-card-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.path-card-destination {
+  color: #999;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.branch-indicator {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: #ffa500;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
