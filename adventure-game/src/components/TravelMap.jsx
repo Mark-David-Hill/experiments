@@ -3,7 +3,7 @@ import './TravelMap.css'
 import { overworldMap } from '../data/overworldMap'
 import { travelMaps, NODE_TYPES } from '../data/travelMaps'
 
-function TravelMap({ pathId, connection, onReturn, onArrive }) {
+function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
   const [currentNodeId, setCurrentNodeId] = useState(null)
   const [pathData, setPathData] = useState(null)
 
@@ -27,6 +27,10 @@ function TravelMap({ pathId, connection, onReturn, onArrive }) {
     : []
 
   const handleNodeClick = (nodeId) => {
+    // Only advance time if actually moving to a different node
+    if (nodeId !== currentNodeId && onTimeAdvance) {
+      onTimeAdvance()
+    }
     setCurrentNodeId(nodeId)
   }
 
@@ -60,38 +64,53 @@ function TravelMap({ pathId, connection, onReturn, onArrive }) {
     const minY = Math.min(...overworldCoords.map(p => p.y))
     const maxY = Math.max(...overworldCoords.map(p => p.y))
     
-    // Add padding
     const rangeX = maxX - minX || 1
     const rangeY = maxY - minY || 1
-    const padding = Math.max(rangeX, rangeY) * 0.2
     
     // Normalize function to convert overworld coords to 0-100 scale
     const normalizeX = (x) => {
-      return 10 + ((x - minX + padding) / (rangeX + padding * 2)) * 80
+      if (rangeX === 0) return 50 // Center if no range
+      return 15 + ((x - minX) / rangeX) * 70
     }
     const normalizeY = (y) => {
-      return 10 + ((y - minY + padding) / (rangeY + padding * 2)) * 80
+      if (rangeY === 0) return 50 // Center if no range
+      return 15 + ((y - minY) / rangeY) * 70
     }
     
     if (connectedPoints.length === 2) {
-      // Simple two-point path - use overworld positions
+      // Simple two-point path - spread nodes out evenly horizontally
       const [point1, point2] = connectedPoints
       const node1 = destinationNodes.find(n => n.overworldPoint === point1)
       const node2 = destinationNodes.find(n => n.overworldPoint === point2)
-      const coord1 = overworldMap.points[point1]
-      const coord2 = overworldMap.points[point2]
       
-      positions[node1.id] = { x: normalizeX(coord1.x), y: normalizeY(coord1.y) }
-      positions[node2.id] = { x: normalizeX(coord2.x), y: normalizeY(coord2.y) }
+      // Force much wider spacing for 2-point paths - evenly distribute across width
+      const totalNodes = 2 + regularNodes.length
+      const startX = 2
+      const endX = 98
+      const totalWidth = endX - startX
+      
+      // Ensure minimum spacing of 20 units between nodes to prevent text overlap
+      const minSpacing = 20
+      const calculatedSpacing = totalWidth / (totalNodes - 1)
+      const spacing = Math.max(calculatedSpacing, minSpacing)
+      
+      // Recalculate positions if we need more space
+      const actualWidth = spacing * (totalNodes - 1)
+      const offset = actualWidth <= totalWidth ? (totalWidth - actualWidth) / 2 : 0
+      
+      // Position nodes evenly spaced horizontally
+      positions[node1.id] = { x: startX + offset, y: 50 }
       
       // Place regular nodes in between
       regularNodes.forEach((node, idx) => {
-        const t = (idx + 1) / (regularNodes.length + 1)
         positions[node.id] = {
-          x: normalizeX(coord1.x) + (normalizeX(coord2.x) - normalizeX(coord1.x)) * t,
-          y: normalizeY(coord1.y) + (normalizeY(coord2.y) - normalizeY(coord1.y)) * t,
+          x: startX + offset + spacing * (idx + 1),
+          y: 50
         }
       })
+      
+      // Position last destination node
+      positions[node2.id] = { x: startX + offset + spacing * (totalNodes - 1), y: 50 }
     } else if (connectedPoints.length === 3) {
       // Branching path - use overworld positions to calculate branch point
       const [trunkPoint, ...branchPoints] = connectedPoints
@@ -167,16 +186,6 @@ function TravelMap({ pathId, connection, onReturn, onArrive }) {
       </div>
 
       <div className="travel-content">
-        <div className="current-node-info">
-          <h3>Current Location</h3>
-          <p className="node-description">{currentNode.description}</p>
-          {currentNode.type === NODE_TYPES.DESTINATION && (
-            <p className="destination-badge">
-              Overworld Point: {overworldMap.points[currentNode.overworldPoint]?.label}
-            </p>
-          )}
-        </div>
-
         <div className="path-visualization">
           <svg className="path-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
             {/* Draw connections */}
@@ -228,14 +237,12 @@ function TravelMap({ pathId, connection, onReturn, onArrive }) {
                   />
                   <text
                     x={pos.x}
-                    y={pos.y - 8}
+                    y={pos.y - 12}
                     textAnchor="middle"
                     className="node-label"
-                    fontSize="3"
+                    fontSize="2"
                   >
-                    {node.type === NODE_TYPES.DESTINATION 
-                      ? overworldMap.points[node.overworldPoint]?.label 
-                      : node.id}
+                    {node.description}
                   </text>
                   
                   {/* Exit button for destination nodes - only when you're actually at this node */}
@@ -260,32 +267,6 @@ function TravelMap({ pathId, connection, onReturn, onArrive }) {
               )
             })}
           </svg>
-        </div>
-
-        <div className="available-moves">
-          <h3>Available Moves</h3>
-          {connectedNodes.length > 0 ? (
-            <div className="move-buttons">
-              {connectedNodes.map((node) => (
-                <button
-                  key={node.id}
-                  onClick={() => handleNodeClick(node.id)}
-                  className={`move-button ${
-                    node.type === NODE_TYPES.DESTINATION ? 'destination-button' : ''
-                  }`}
-                >
-                  <span className="move-label">{node.description}</span>
-                  {node.type === NODE_TYPES.DESTINATION && (
-                    <span className="move-destination">
-                      → {overworldMap.points[node.overworldPoint]?.label}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p>No available moves</p>
-          )}
         </div>
 
         {/* Gameplay area */}
