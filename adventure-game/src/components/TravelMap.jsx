@@ -78,39 +78,50 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
     }
     
     if (connectedPoints.length === 2) {
-      // Simple two-point path - spread nodes out evenly horizontally
+      // Simple two-point path - use overworld coordinates to preserve path angle
       const [point1, point2] = connectedPoints
       const node1 = destinationNodes.find(n => n.overworldPoint === point1)
       const node2 = destinationNodes.find(n => n.overworldPoint === point2)
+      const coord1 = overworldMap.points[point1]
+      const coord2 = overworldMap.points[point2]
       
-      // Force much wider spacing for 2-point paths - evenly distribute across width
+      // Position endpoints using normalized overworld coords (preserves diagonal/horizontal)
+      const x1 = normalizeX(coord1.x)
+      const y1 = normalizeY(coord1.y)
+      const x2 = normalizeX(coord2.x)
+      const y2 = normalizeY(coord2.y)
+      
+      // Ensure minimum spacing between nodes along the line
       const totalNodes = 2 + regularNodes.length
-      const startX = 2
-      const endX = 98
-      const totalWidth = endX - startX
-      
-      // Ensure minimum spacing of 20 units between nodes to prevent text overlap
+      const lineLength = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
       const minSpacing = 20
-      const calculatedSpacing = totalWidth / (totalNodes - 1)
-      const spacing = Math.max(calculatedSpacing, minSpacing)
+      const minLineLength = minSpacing * (totalNodes - 1)
       
-      // Recalculate positions if we need more space
-      const actualWidth = spacing * (totalNodes - 1)
-      const offset = actualWidth <= totalWidth ? (totalWidth - actualWidth) / 2 : 0
+      let startX = x1, startY = y1, endX = x2, endY = y2
+      if (lineLength < minLineLength && lineLength > 0) {
+        // Stretch the line to meet minimum spacing while keeping the same angle
+        const scale = minLineLength / lineLength
+        const midX = (x1 + x2) / 2
+        const midY = (y1 + y2) / 2
+        const half = minLineLength / 2
+        const angle = Math.atan2(y2 - y1, x2 - x1)
+        startX = midX - half * Math.cos(angle)
+        startY = midY - half * Math.sin(angle)
+        endX = midX + half * Math.cos(angle)
+        endY = midY + half * Math.sin(angle)
+      }
       
-      // Position nodes evenly spaced horizontally
-      positions[node1.id] = { x: startX + offset, y: 50 }
+      positions[node1.id] = { x: startX, y: startY }
+      positions[node2.id] = { x: endX, y: endY }
       
-      // Place regular nodes in between
+      // Place regular nodes evenly along the line between endpoints
       regularNodes.forEach((node, idx) => {
+        const t = (idx + 1) / (totalNodes - 1)
         positions[node.id] = {
-          x: startX + offset + spacing * (idx + 1),
-          y: 50
+          x: startX + (endX - startX) * t,
+          y: startY + (endY - startY) * t
         }
       })
-      
-      // Position last destination node
-      positions[node2.id] = { x: startX + offset + spacing * (totalNodes - 1), y: 50 }
     } else if (connectedPoints.length === 3) {
       // Branching path - use overworld positions to calculate branch point
       const [trunkPoint, ...branchPoints] = connectedPoints
@@ -138,35 +149,60 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
       const branchPointY = (trunkCoord.y + avgY) / 2
       
       // Place regular nodes
-      if (regularNodes.length === 1) {
-        // Single center node at calculated branch point
-        positions[regularNodes[0].id] = {
+      // First, find if there's a junction/center node (connected to multiple destinations)
+      const junctionNode = regularNodes.find(node => {
+        const nodeConnections = pathData.nodes.find(n => n.id === node.id)?.connections || []
+        return nodeConnections.length >= 3 // Junction connects to 3+ nodes
+      })
+      
+      const otherRegularNodes = regularNodes.filter(node => node.id !== junctionNode?.id)
+      
+      // Place junction at the calculated branch point
+      if (junctionNode) {
+        positions[junctionNode.id] = {
           x: normalizeX(branchPointX),
           y: normalizeY(branchPointY),
         }
-      } else {
-        // Multiple regular nodes - distribute along paths
-        regularNodes.forEach((node, idx) => {
-          if (idx === 0) {
-            // First node between trunk and branch point
-            const t = 0.5
+      }
+      
+      // Place other regular nodes along their respective paths
+      otherRegularNodes.forEach((node) => {
+        const nodeData = pathData.nodes.find(n => n.id === node.id)
+        const nodeConnections = nodeData?.connections || []
+        
+        // Find which destination this node connects to
+        const connectedDest = destinationNodes.find(dest => 
+          nodeConnections.includes(dest.id)
+        )
+        
+        if (connectedDest) {
+          const destCoord = overworldMap.points[connectedDest.overworldPoint]
+          const destPos = positions[connectedDest.id]
+          
+          // Place node between its destination and the junction (or branch point)
+          const t = 0.6 // Closer to destination
+          if (junctionNode) {
+            const junctionPos = positions[junctionNode.id]
             positions[node.id] = {
-              x: normalizeX(trunkCoord.x) + (normalizeX(branchPointX) - normalizeX(trunkCoord.x)) * t,
-              y: normalizeY(trunkCoord.y) + (normalizeY(branchPointY) - normalizeY(trunkCoord.y)) * t,
+              x: destPos.x + (junctionPos.x - destPos.x) * (1 - t),
+              y: destPos.y + (junctionPos.y - destPos.y) * (1 - t),
             }
           } else {
-            // Other nodes along branches
-            const branchIdx = (idx - 1) % branchPoints.length
-            const branchPoint = branchPoints[branchIdx]
-            const branchCoord = overworldMap.points[branchPoint]
-            const t = 0.5
+            // No junction, place between destination and calculated branch point
             positions[node.id] = {
-              x: normalizeX(branchPointX) + (normalizeX(branchCoord.x) - normalizeX(branchPointX)) * t,
-              y: normalizeY(branchPointY) + (normalizeY(branchCoord.y) - normalizeY(branchPointY)) * t,
+              x: destPos.x + (normalizeX(branchPointX) - destPos.x) * (1 - t),
+              y: destPos.y + (normalizeY(branchPointY) - destPos.y) * (1 - t),
             }
           }
-        })
-      }
+        } else {
+          // Fallback: place between trunk and branch point
+          const t = 0.5
+          positions[node.id] = {
+            x: normalizeX(trunkCoord.x) + (normalizeX(branchPointX) - normalizeX(trunkCoord.x)) * t,
+            y: normalizeY(trunkCoord.y) + (normalizeY(branchPointY) - normalizeY(trunkCoord.y)) * t,
+          }
+        }
+      })
     }
     
     return positions
@@ -240,29 +276,92 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
                     y={pos.y - 12}
                     textAnchor="middle"
                     className="node-label"
-                    fontSize="2"
+                    fontSize="2.8"
                   >
                     {node.description}
                   </text>
                   
                   {/* Exit button for destination nodes - only when you're actually at this node */}
-                  {node.type === NODE_TYPES.DESTINATION && isCurrent && (
-                    <foreignObject
-                      x={pos.x - 20}
-                      y={pos.y + 10}
-                      width="40"
-                      height="20"
-                    >
-                      <div className="svg-exit-button-container">
-                        <button
-                          onClick={() => handleExitClick(node.overworldPoint)}
-                          className="svg-exit-button current-exit"
-                        >
-                          <span className="svg-exit-label">Exit</span>
-                        </button>
-                      </div>
-                    </foreignObject>
-                  )}
+                  {node.type === NODE_TYPES.DESTINATION && isCurrent && (() => {
+                    // Default button area: below node at (pos.x, pos.y + 20) with ~20 unit radius
+                    const defaultButtonCenterY = pos.y + 20
+                    const defaultButtonCenterX = pos.x
+                    
+                    // Check if any node would overlap with the default button area (below)
+                    const nodeInButtonAreaBelow = pathData.nodes.find(otherNode => {
+                      if (otherNode.id === node.id) return false
+                      const otherPos = nodePositions[otherNode.id]
+                      if (!otherPos) return false
+                      const dist = Math.sqrt(
+                        (otherPos.x - defaultButtonCenterX) ** 2 +
+                        (otherPos.y - defaultButtonCenterY) ** 2
+                      )
+                      return dist < 22
+                    })
+                    
+                    // ViewBox is 0 0 100 100; button height 20 - avoid cut-off at bottom
+                    const wouldBeCutOffBelow = pos.y + 30 > 100
+                    const putButtonAbove = nodeInButtonAreaBelow || wouldBeCutOffBelow
+                    
+                    // When placing above, check if any node would overlap the "above" button area
+                    const aboveButtonCenterY = pos.y - 15
+                    const nodeInButtonAreaAbove = putButtonAbove && pathData.nodes.some(otherNode => {
+                      if (otherNode.id === node.id) return false
+                      const otherPos = nodePositions[otherNode.id]
+                      if (!otherPos) return false
+                      const dist = Math.sqrt(
+                        (otherPos.x - pos.x) ** 2 +
+                        (otherPos.y - aboveButtonCenterY) ** 2
+                      )
+                      return dist < 22
+                    })
+                    
+                    // Use side position when button would overlap a node (below or above)
+                    const useSidePosition = nodeInButtonAreaBelow || nodeInButtonAreaAbove
+                    
+                    // If we'd put button above but node is near top, button would be cut off (viewBox y 0-100)
+                    const wouldBeCutOffAbove = putButtonAbove && pos.y - 25 < 0
+                    
+                    // When using side position, pick the side that does NOT have the connected node(s)
+                    let buttonX = pos.x - 20
+                    if (useSidePosition || wouldBeCutOffAbove) {
+                      const connectedPositions = (currentNode?.connections || [])
+                        .map(id => nodePositions[id])
+                        .filter(Boolean)
+                      const avgConnectedX = connectedPositions.length
+                        ? connectedPositions.reduce((sum, p) => sum + p.x, 0) / connectedPositions.length
+                        : pos.x
+                      // Place button on the opposite side of connected nodes
+                      // Button width 40: place with small gap from node (12 units)
+                      buttonX = avgConnectedX < pos.x ? pos.x + 12 : pos.x - 52
+                    }
+                    
+                    // Y: if would be cut off above, place to side vertically centered; else above or below
+                    let buttonY = pos.y + 10
+                    if (putButtonAbove && !wouldBeCutOffAbove) {
+                      buttonY = pos.y - 25
+                    } else if (wouldBeCutOffAbove) {
+                      buttonY = pos.y - 10 // Vertically centered on node so button stays in view
+                    }
+                    
+                    return (
+                      <foreignObject
+                        x={buttonX}
+                        y={buttonY}
+                        width="40"
+                        height="20"
+                      >
+                        <div className="svg-exit-button-container">
+                          <button
+                            onClick={() => handleExitClick(node.overworldPoint)}
+                            className="svg-exit-button current-exit"
+                          >
+                            <span className="svg-exit-label">Exit</span>
+                          </button>
+                        </div>
+                      </foreignObject>
+                    )
+                  })()}
                 </g>
               )
             })}

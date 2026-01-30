@@ -2640,3 +2640,975 @@ Labels are now simple SVG text centered above each node, and nodes are spaced fa
 
 ---
 
+_**User**_
+
+That works. When on the travel map though the travel-header div takes up too much vertical space
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+Reducing the vertical space of the travel-header:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+Reduced the vertical space of the travel-header:
+
+1. **Reduced margins**: margin-bottom from 2rem to 1rem
+2. **Reduced padding**: padding-bottom from 1rem to 0.5rem
+3. **Smaller fonts**: h2 from 2rem to 1.5rem, path-info from 1.5rem to 1.2rem
+4. **Tighter spacing**: reduced margins between elements
+5. **Smaller entry info**: reduced font size and padding
+
+The header should now take up less vertical space.
+
+---
+
+_**User**_
+
+There's something weird going on with the river valley travel map. It seems like there are 2 nodes overlapping each other, so it's hard to tell how everything is connected
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+Checking the river valley path data and layout algorithm:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/travelMaps.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/overworldMap.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+Fixing the layout algorithm for the river valley path. The junction node is being placed incorrectly, causing overlap. Updating the algorithm:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+Fixed the layout algorithm for the river valley path:
+
+1. **Identifies the junction node**: Finds the node that connects to 3+ nodes (the "River junction" node).
+
+2. **Places junction at branch point**: The junction is positioned at the calculated branch point (center of the Y).
+
+3. **Places other nodes along their paths**: Each river branch node (river1, river2, river3) is positioned along the path from its destination to the junction, based on which destination it connects to.
+
+This prevents overlap. The junction is at the center, and each river branch node is on its own path from its destination (B, D, or E) toward the junction, so they no longer overlap.
+
+---
+
+_**User**_
+
+That worked. When on the river valley map at the North river branch, the Exit button overlaps the River junction. Maybe if there is a node directly below the exit button could be displayed to the side?
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+Updating exit button positioning to avoid overlapping nodes: if a node is directly below, place the button to the side.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+Added logic to detect if a node is directly below the exit button. If so, it places the button to the side instead:
+
+1. **Detects nearby nodes**: Checks for nodes within 15 units vertically below and 10 units horizontally.
+
+2. **Side positioning**: If a node is detected below:
+   - If the current node is on the right side (x > 50), the button goes to the left
+   - If on the left side (x ≤ 50), the button goes to the right
+
+3. **Default positioning**: If no node is below, the button stays below as before.
+
+This prevents the exit button from overlapping the River junction when you're at the North river branch.
+
+---
+
+_**User**_
+
+The travel map for the mountain trail is horizontal instead of diagonal (doesn't match the overworld map
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying that the mountain trail travel map shows a horizontal layout (nodes in a line) but on the overworld map the path from A to D is diagonal - A is at (100, 100) and D is at (200, 250). So the travel map should show a diagonal line matching that, not a horizontal one.
+
+I will check the current layout. For 2-point paths, we're currently forcing all nodes to y=50 (horizontal). We should use the actual overworld coordinates to preserve the angle/direction of the path.
+</details></think>
+
+---
+
+
+Using overworld coordinates for 2-point paths so the travel map matches the overworld angle (e.g., diagonal for the mountain trail).
+
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+The read_file tool wasn't found - maybe it's Read with capital R?
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/overworldMap.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I see. For 2-point paths we're forcing y=50 for all nodes (horizontal). Instead, we should use the overworld coordinates - normalize them to fit in the viewBox while preserving the angle. So for a-d: A is at (100, 100), D is at (200, 250) - that's diagonal (down and to the right). We need to position nodes along that line.
+
+I'll update the 2-point path layout to use the actual overworld coordinates (normalized) for the two endpoints, and place regular nodes along the line between them. That way the path will have the same angle as the overworld.
+</details></think>
+
+---
+
+
+Updating the 2-point path layout to use overworld coordinates so the path angle matches the overworld map.
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Good, I've updated the 2-point path layout to use the overworld coordinates. The endpoints will be positioned using normalizeX/normalizeY which preserves the relative positions from the overworld map. So for a-d (A at 100,100 and D at 200,250), the path will be diagonal. For a-b (A at 100,100 and B at 300,100), the path will be horizontal.
+
+I also added logic to ensure minimum spacing - if the normalized line is too short, we stretch it along the same angle so nodes don't overlap.
+</details></think>
+
+---
+
+
+Updated the 2-point path layout so it matches the overworld map:
+
+1. **Overworld coordinates** – Endpoints use `normalizeX` / `normalizeY` on the overworld points, so the path keeps the same angle (diagonal for A→D, horizontal for A→B).
+
+2. **Intermediate nodes** – Regular nodes are placed along the line between those endpoints, so the whole path follows the same direction.
+
+3. **Minimum spacing** – If the normalized line is too short, it’s stretched along the same angle so nodes stay at least 20 units apart.
+
+The mountain trail (A to D) should now appear diagonal on the travel map, matching the overworld.
+
+---
+
+_**User**_
+
+now for the mountain trail the exit button overlaps with the base of the mountain node
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying that on the mountain trail, the exit button overlaps with the "base of the mountain" node. This is similar to the river valley issue - when the exit button would be placed below a destination node, there might be another node (like "base of the mountain") directly below it.
+
+Currently we have logic that checks if there's a node "directly below" - within 15 units vertically and 10 units horizontally. For a diagonal path, "below" might mean different things. The base of the mountain node might be between Point A and the next node along the diagonal, so when you're at Point A, the "base of the mountain" could be below and to the right (or along the path).
+
+I need to expand the logic to also check for nodes that might be in the direction of the path from the current node - not just strictly "below". Or we could check in a wider area - any node that would be in the space where we'd put the exit button.
+
+I will re-read the current logic:
+- We check for nodes where verticalDist > 0 && verticalDist < 15 && horizontalDist < 10
+- So we're looking for nodes that are below (higher y value) and within 10 units horizontally
+
+For a diagonal path going down and to the right, the "base of the mountain" node would be below and to the right of Point A. So it might have verticalDist > 0 and could be within 10 units horizontally depending on the angle. Actually on a diagonal, the next node might be 20+ units away in both x and y. So the "below" check might not catch it if the node is diagonal.
+
+I will think - we need to check if any node would overlap with the exit button area. The exit button is placed at (pos.x - 20, pos.y + 10) with width 40, height 20. So it occupies from pos.x-20 to pos.x+20 and pos.y+10 to pos.y+30.
+
+So we need to check if any other node's position falls within or near that rectangle. A node at (nodePos.x, nodePos.y) with radius ~5 would overlap if it's in that general area.
+
+I will update the logic to: check if any node is within a certain distance of the default exit button position (the center would be pos.x, pos.y+20). If any node is within say 15-20 units of that point, put the exit button to the side instead.
+</details></think>
+
+---
+
+
+Updating exit-button logic to treat any node near the button area (not only directly below) and place the button to the side when needed.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to change the overlap detection. Instead of only checking for nodes "directly below", check if any node would overlap with the default exit button area. The default button is at (pos.x - 20, pos.y + 10) with width 40, height 20. So the button center is roughly (pos.x, pos.y + 20). Any node within ~20 units of that center could overlap. So I'll check: is any other node within 18 units of (pos.x, pos.y + 20)? If so, put the button to the side.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I've updated the logic to check if any node is within 22 units of the default button center (pos.x, pos.y + 20). This uses Euclidean distance, so it will catch nodes that are diagonal (like "base of the mountain" on the mountain trail) as well as nodes directly below. When overlap is detected, the button is placed to the side with a bit more offset (28 instead of 25) to ensure clearance.
+</details></think>
+
+---
+
+
+Updated the exit button logic so it doesn’t overlap other nodes:
+
+1. **Overlap check** – Instead of only “directly below,” it now treats the default button area as a circle around `(pos.x, pos.y + 20)` and checks whether any other node is within 22 units of that point (using distance, so diagonals like “base of the mountain” are included).
+
+2. **Side placement** – If any node is in that area, the button is drawn to the side with a slightly larger offset (28 units) so it stays clear.
+
+On the mountain trail at Point A, the “base of the mountain” node along the diagonal is now detected and the exit button is moved to the side instead of overlapping it.
+
+---
+
+_**User**_
+
+Also on that map, the exit button when at point d gets cut off below the bottom of the container. I think that may happen for low nodes on some other travel maps as well.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying that when at Point D on the mountain trail (or other low nodes on travel maps), the exit button gets cut off below the bottom of the container. So when the node is near the bottom of the SVG/viewBox, the exit button which is placed below (pos.y + 10) goes outside the visible area.
+
+I need to:
+1. Check if the default button position would be near or past the bottom of the viewBox (y=100)
+2. If so, position the button above the node instead of below
+3. Maybe also check for nodes that are in the "low" area and always put the button above in those cases
+
+I will look at the SVG viewBox - it's "0 0 100 100". So y goes from 0 to 100. If a node is at y=80 or so, the button at pos.y + 10 would be at y=90, and the button height is 20, so it would extend to y=110 - cut off.
+
+So the logic should be: if the default button position (pos.y + 10) plus button height (20) would extend past the bottom (100), then position the button above the node instead (e.g. pos.y - 25 or so).
+</details></think>
+
+---
+
+
+Positioning the exit button above the node when it would be cut off at the bottom.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+The viewBox is "0 0 100 100", so the bottom is y=100. The button has height 20. So if we place the button at buttonY, it extends to buttonY + 20. We need buttonY + 20 <= 100, so buttonY <= 80.
+
+Default buttonY when below is pos.y + 10. So we need pos.y + 10 + 20 <= 100, i.e. pos.y <= 70. If pos.y > 70, the button would be cut off.
+
+So the logic: if placing below would get cut off (pos.y + 30 > 100, i.e. pos.y > 70), place the button above the node instead. When above, buttonY could be pos.y - 25 so the button sits above the node (and we need pos.y - 25 >= 0, so pos.y >= 25, which should be fine for any node).
+
+I will also consider when we're placing to the side (nodeInButtonArea). In that case buttonY is pos.y - 5, so the button extends to pos.y - 5 + 20 = pos.y + 15. That's still below the node. So when we place to the side we might also need to check if we're near the bottom. Actually when we place to the side we use pos.y - 5 (above the node), so that should be fine. So the cut-off issue is when we place below: buttonY = pos.y + 10, and for low nodes that goes past 100.
+
+I'll add a check: if pos.y + 30 > 100 (button would extend past bottom), place the button above the node instead: buttonY = pos.y - 25. We might need to also check if placing above would overlap with a node above - but let's start with just fixing the cut-off.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Good. Now when the node is low (pos.y + 30 > 100, i.e. pos.y > 70), we put the button above (pos.y - 25). That way the button stays within the viewBox. I also made it so that when we put the button above due to overlap (nodeInButtonArea), we use the same offset (pos.y - 25) for consistency. So now putButtonAbove is true when either there's a node in the button area OR the node is near the bottom. In both cases we use buttonY = pos.y - 25.
+</details></think>
+
+---
+
+
+Updated the exit button logic so it doesn’t get cut off at the bottom:
+
+1. **Cut-off check** – Before placing the button, it checks whether the bottom of the button would go past the viewBox (`pos.y + 30 > 100`, since the button is 20 units tall and placed at `pos.y + 10`).
+
+2. **Place above when needed** – If it would be cut off, or if another node is in the default button area, the button is drawn above the node at `pos.y - 25` instead of below.
+
+So for Point D on the mountain trail (and any other low node on travel maps), the exit button is drawn above the node and stays inside the container.
+
+---
+
+_**User**_
+
+Now on that map the exit button overlaps the node above/to the left of point d.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying that when we put the exit button above Point D (to avoid cut-off), it now overlaps with the node above/to the left of Point D - which would be "Mountain pass" on the mountain trail (the node between "Steep climb" and Point D).
+
+So when we position the button above (pos.y - 25), we need to also check if there's a node in THAT area that would overlap. If so, we should put the button to the side instead (like we do when nodeInButtonArea is true - we use the side position). So when putButtonAbove is true due to wouldBeCutOffBelow, we're using buttonY = pos.y - 25 and buttonX = pos.x - 20 (centered). That could overlap with the "Mountain pass" node which is above and to the left of Point D.
+
+So the fix: when we're putting the button above (pos.y - 25), we should also check if any node would overlap with that position. If so, use the side position (buttonX to the left or right) with the above Y position. So we'd have button at (pos.x - 28, pos.y - 25) or (pos.x + 28, pos.y - 25) to get it out of the way of the node above.
+</details></think>
+
+---
+
+
+Checking for nodes in the "above" button area and moving the button to the side when it would overlap.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+When wouldBeCutOffBelow is true, we put the button above at (pos.x - 20, pos.y - 25). But we're not checking if there's a node in that "above" area. So I need to:
+
+1. When we're going to put the button above (either due to nodeInButtonArea or wouldBeCutOffBelow), check if any node would overlap with the "above" position (pos.x, pos.y - 15) with radius ~22.
+2. If there's a node in the above area, use the side position for X (pos.x - 28 or pos.x + 28) while keeping Y at pos.y - 25.
+
+So the logic:
+- default: below (pos.x - 20, pos.y + 10)
+- if nodeInButtonArea: side + above? Currently we use (side X, pos.y - 5). So we use side X and a Y that's above. Actually re-reading the code: when nodeInButtonArea we use buttonY = pos.y - 5 (slightly above). When wouldBeCutOffBelow we use buttonY = pos.y - 25 (well above). So when both nodeInButtonArea and wouldBeCutOffBelow, we use putButtonAbove = true so buttonY = pos.y - 25. Good.
+
+The issue is: when wouldBeCutOffBelow is true but nodeInButtonArea is false, we use buttonX = pos.x - 20 (centered) and buttonY = pos.y - 25. That centered-above position can overlap with the "Mountain pass" node. So we need to check for nodes in the "above" button area (center pos.x, pos.y - 15, radius 22). If found, use side X (pos.x - 28 or pos.x + 28).
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Good. Now when we put the button above (e.g. at Point D because of cut-off), we also check if any node would overlap with that above position (center at pos.x, pos.y - 15). If so, we set nodeInButtonAreaAbove = true, which makes useSidePosition = true, so we use the side X (pos.x - 28 or pos.x + 28) while keeping buttonY = pos.y - 25. That way the button is above and to the side, avoiding overlap with the "Mountain pass" node.
+</details></think>
+
+---
+
+
+Updated the exit button logic so it doesn’t overlap the node above Point D:
+
+1. **Overlap when placed above** – When the button is drawn above the node (e.g. at Point D to avoid being cut off), it now checks whether any other node would overlap that “above” position (center at `pos.x`, `pos.y - 15`).
+
+2. **Move to the side when needed** – If something would overlap either the default “below” area or the “above” area, the button uses the side position (`buttonX` = `pos.x - 28` or `pos.x + 28`) so it’s out of the way.
+
+3. **Naming** – The “below” check is now `nodeInButtonAreaBelow`; the new “above” check is `nodeInButtonAreaAbove`; and `useSidePosition` is true when either check finds an overlap.
+
+So at Point D on the mountain trail, the exit button is drawn above and to the side, avoiding both the bottom cut-off and the “Mountain pass” node above.
+
+---
+
+_**User**_
+
+Hmm, somehow you made it worse. Now the exit button is completely covering the connected node.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying the exit button is now completely covering the connected node. So when we put the button to the side (pos.x - 28 or pos.x + 28), it's overlapping with the node that's connected to the current node - perhaps the side we're placing it on has the connected node there.
+
+So the fix should be: when we need to place the button to the side, we should choose the side that does NOT have a connected node. So we need to check which side has nodes - if the connected node(s) are to the left of the current node, place the button to the right; if they're to the right, place the button to the left. That way we avoid covering the connected node.
+</details></think>
+
+---
+
+
+Choosing the side that doesn't have the connected node when placing the exit button.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to change the logic so that when we use the side position, we pick the side that doesn't have connected nodes. The current node has connections - we can get them from currentNode.connections. So we need to find the positions of the connected nodes and see if they're mostly to the left or right of the current node. Then we place the button on the opposite side.
+
+So: get connected node positions. If the average x of connected nodes is less than pos.x (connected nodes are to the left), place button to the right (pos.x + 28). If average x is greater than pos.x (connected nodes are to the right), place button to the left (pos.x - 28). If we have connected nodes on both sides, we could use the majority or the closest one. I will use: if any connected node is to the left (otherPos.x < pos.x), we might want to avoid left; if any to the right, avoid right. Actually the simplest is: place button on the side that has the FEWEST connected nodes, or the side where the connected nodes are farther. So: compute average x of connected nodes. If average < pos.x, connected nodes are to the left, so place button to the right (pos.x + 28). If average > pos.x, place button to the left (pos.x - 28). If average === pos.x (unlikely), use pos.x > 50 as before.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Good. Now when we use the side position, we look at where the connected nodes are (their average x). If the connected nodes are to the left of the current node (avgConnectedX < pos.x), we place the button to the right (pos.x + 28). If they're to the right, we place the button to the left (pos.x - 28). That way the exit button goes on the side away from the path/connected nodes and won't cover them.
+</details></think>
+
+---
+
+
+Updated the exit button logic so it no longer covers the connected node:
+
+**Side choice** – When the button is placed to the side, it now picks the side **away from** the connected node(s). It uses the average x of all connected nodes: if they’re to the left of the current node, the button goes to the right (`pos.x + 28`); if they’re to the right, it goes to the left (`pos.x - 28`).
+
+So at Point D on the mountain trail, the connected node (Mountain pass) is above/left of D; the button is placed on the opposite side and no longer covers it.
+
+---
+
+_**User**_
+
+That's better, but it's too far to the right now.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying the exit button is now too far to the right. So when we place it to the right (pos.x + 28), it's too far. I should reduce the offset - maybe use something like pos.x + 15 or pos.x + 20 instead of pos.x + 28. Same for the left side - we might want to reduce the offset so the button is closer to the node.
+</details></think>
+
+---
+
+
+Reducing the side offset so the exit button sits closer to the node.
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "pos\\.x \\+ 28|pos\\.x - 28",
+  "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "pos\\.x \\+ 28|pos\\.x - 28",
+    "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Users/markhill/Documents/github/experiments": {
+        "content": {
+          "matches": [
+            {
+              "file": "adventure-game/src/components/TravelMap.jsx",
+              "matches": [
+                {
+                  "lineNumber": 332,
+                  "content": "                      buttonX = avgConnectedX &lt; pos.x ? pos.x + 28 : pos.x - 28"
+                }
+              ]
+            }
+          ],
+          "totalLines": 1,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I'll reduce the offset from 28 to something smaller like 18 or 20. The button is 40 wide, so its center would be at pos.x + 28 - 20 = pos.x + 8 when placed to the right. So the left edge is at pos.x + 8. If we use 18, the foreignObject x would be pos.x - 18 (for left placement, so left edge at pos.x - 18, center at pos.x - 18 + 20 = pos.x + 2) or pos.x + 18 (for right placement, so left edge at pos.x + 18). Actually the foreignObject x is the left edge of the button. So when we do pos.x + 28, the button's left edge is at pos.x + 28, so the button extends from pos.x+28 to pos.x+68. The center is at pos.x+48. So the button is quite far to the right. To bring it closer, we could use pos.x + 15 or pos.x + 12 - that would put the left edge at pos.x+15, so the button would be from pos.x+15 to pos.x+55, center at pos.x+35. That's still 35 units from the node. Or we could use a smaller offset like 10: button from pos.x+10 to pos.x+50, center at pos.x+30. I will try 18 - so the button is a bit closer. buttonX = pos.x + 18 or pos.x - 18. When on the right, left edge at pos.x+18, so the button is 18 units to the right of the node (node center). When on the left, left edge at pos.x-18, but the button is 40 wide so it extends to pos.x+22 - so the button center is at pos.x+2. So the button would actually overlap the node when on the left! So for left placement we need buttonX = pos.x - 20 - 20 = pos.x - 40 so the right edge is at pos.x. So when placing to the left, buttonX should be pos.x - 40 (so the button is to the left of the node). When placing to the right, buttonX = pos.x + 5 or so (so the button is just to the right of the node). So the offset isn't symmetric - when we say "pos.x - 28" we're putting the left edge at pos.x-28, so the button goes from pos.x-28 to pos.x+12 - so it's mostly to the left but overlaps the node by 12 units! So actually the 28 was chosen so that with width 40, the button doesn't overlap: left edge at pos.x-28 means right edge at pos.x-28+40 = pos.x+12. So the button extends from pos.x-28 to pos.x+12. The node is at pos.x, so the button overlaps the node (from pos.x-28 to pos.x+12, the node at pos.x is inside). So we need the button to be fully to one side. For "to the left", we need right edge <= pos.x - 5 or so, so left edge <= pos.x - 45, so buttonX <= pos.x - 45. For "to the right", we need left edge >= pos.x + 5, so buttonX >= pos.x + 5. So buttonX for right could be pos.x + 5 or pos.x + 8. For left, buttonX could be pos.x - 45 (so right edge at pos.x - 5). So the current code uses pos.x - 28 for "left" and pos.x + 28 for "right". For right: left edge at pos.x+28, so the button is from pos.x+28 to pos.x+68 - that's 28 units from the node center. So the gap between node (at pos.x) and button (starts at pos.x+28) is 28 units. The user says it's too far to the right, so we're probably in the "right" case. So we need to reduce pos.x + 28 to something like pos.x + 10 or pos.x + 15 - so the button is closer. I will use pos.x + 12 for right and pos.x - 52 for left (so right edge at pos.x - 12, symmetric 12-unit gap). Actually wait, the current "left" placement is pos.x - 28, which puts the button from pos.x-28 to pos.x+12 - so it overlaps the node! So maybe the issue was that we're placing to the right with pos.x+28 and the user says it's too far. So I'll just reduce the right offset from 28 to 15 or 12. And for consistency reduce the left offset - for left we want the button fully to the left, so buttonX = pos.x - 40 would put right edge at pos.x. So buttonX = pos.x - 40 for left. I will use: right side buttonX = pos.x + 12 (small gap), left side buttonX = pos.x - 52 (so right edge at pos.x - 12, small gap). So 12 unit gap on each side.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I reduced the offset. When placing to the right: buttonX = pos.x + 12, so the button is from pos.x+12 to pos.x+52, leaving a 12-unit gap from the node. When placing to the left: buttonX = pos.x - 52, so the button is from pos.x-52 to pos.x-12, leaving a 12-unit gap from the node. That should bring it closer.
+</details></think>
+
+---
+
+
+Updated the side placement so the button sits closer to the node:
+
+- **Right side**: `pos.x + 12` instead of `pos.x + 28` (12-unit gap).
+- **Left side**: `pos.x - 52` instead of `pos.x - 28` so the 40-wide button stays fully left of the node with the same 12-unit gap.
+
+The exit button should now sit nearer the node without overlapping it.
+
+---
+
+_**User**_
+
+The lower one by the d node is better now, but now the a node is too high/getting cut off by the top of the container
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying that when at Point A on the mountain trail, the exit button is getting cut off at the top of the container. So when we put the button above the node (pos.y - 25), for a node that's near the top of the map (like Point A), the button would extend above y=0 and get cut off.
+
+I need to add a check: if we're placing the button above (putButtonAbove) and the node is near the top (pos.y - 25 < 0 or pos.y - 25 + 20 = pos.y - 5 < 0, so pos.y < 5 for the top of the button to be visible... actually the button extends from pos.y-25 to pos.y-5. So we need pos.y - 25 >= 0, i.e. pos.y >= 25. If pos.y < 25, the button would be cut off at the top.
+
+So when putButtonAbove would cause cut-off at top (pos.y < 25), we should NOT put the button above. Instead we could try placing it below (if there's room) or to the side with the default Y (pos.y + 10 or pos.y - 5). So the logic: if putButtonAbove && pos.y < 25, then we can't put above - use below instead (buttonY = pos.y + 10). But wait, for Point A on mountain trail, the node might be at the top left. If we put the button below, we might overlap with "Base of the mountain" or "Deep in the woods" or whatever the next node is. So we might need to put it to the side with Y at pos.y (centered vertically with the node) or pos.y - 5 (slightly above) or pos.y + 10 (below). If pos.y < 25, putting above gets cut off. So we should put it to the side with buttonY = pos.y - 10 (so the button is roughly vertically centered on the node, or slightly above). That way the button stays in view. So: if putButtonAbove && pos.y < 25, use side position with buttonY = pos.y - 10 (so button is from pos.y-10 to pos.y+10, centered on node).
+</details></think>
+
+---
+
+
+Checking for top cut-off when placing the exit button above and adjusting placement.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to add a check: when putButtonAbove is true but pos.y - 25 < 0 (button would be cut off at top), we should use a different placement. Options:
+1. Put button below anyway (pos.y + 10) - might overlap or get cut off at bottom for low nodes, but for Point A at top it would be below
+2. Put button to the side with Y centered on node (pos.y - 10) so it stays in view
+
+For a node at the top (Point A), putting the button below (pos.y + 10) would put it in the middle of the path - might overlap with the next node. So let's use: when putButtonAbove would cut off at top (pos.y < 25), use side position (we're likely already using it for overlap) with buttonY = pos.y - 10 so the button is vertically centered on the node and stays within the viewBox.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I've added:
+1. wouldBeCutOffAbove - true when we would put the button above but pos.y - 25 < 0 (button would go above the top of the viewBox)
+2. When wouldBeCutOffAbove, we also use the side position for X (so we trigger the buttonX logic)
+3. For buttonY: when wouldBeCutOffAbove we use pos.y - 10 so the button is vertically centered on the node (button from pos.y-10 to pos.y+10), which keeps it fully in the viewBox when the node is near the top
+</details></think>
+
+---
+
+
+Updated the exit button logic so it doesn’t get cut off at the top:
+
+1. **Top cut-off check** – If the button would be placed above (`putButtonAbove`) and `pos.y - 25 < 0`, it would go above the viewBox, so we treat that as “would be cut off above” (`wouldBeCutOffAbove`).
+
+2. **Use side position when cut off above** – When `wouldBeCutOffAbove` is true, we use the same side positioning as for overlap (button to the side of the node, opposite the connected nodes).
+
+3. **Vertical position when cut off above** – In that case we set `buttonY = pos.y - 10` so the button is vertically centered on the node (from `pos.y - 10` to `pos.y + 10`), keeping it inside the viewBox for nodes near the top like Point A.
+
+So at Point A on the mountain trail, the exit button is drawn to the side and vertically centered on the node, so it stays fully visible.
+
+---
+
+_**User**_
+
+That's working better. Let's try making the node label text a little bigger
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user wants to make the node label text a little bigger on the travel map. I need to find where the node label font size is set and increase it.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "node-label|fontSize.*2",
+  "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "node-label|fontSize.*2",
+    "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Users/markhill/Documents/github/experiments": {
+        "content": {
+          "matches": [
+            {
+              "file": "adventure-game/src/components/TravelMap.jsx",
+              "matches": [
+                {
+                  "lineNumber": 278,
+                  "content": "                    className=\"node-label\""
+                },
+                {
+                  "lineNumber": 279,
+                  "content": "                    fontSize=\"2\""
+                }
+              ]
+            }
+          ],
+          "totalLines": 2,
+          "totalMatchedLines": 2
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "\\.node-label",
+  "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "\\.node-label",
+    "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Users/markhill/Documents/github/experiments": {
+        "content": {
+          "matches": [
+            {
+              "file": "adventure-game/src/components/TravelMap.css",
+              "matches": [
+                {
+                  "lineNumber": 129,
+                  "content": ".node-label {"
+                }
+              ]
+            }
+          ],
+          "totalLines": 1,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to increase the font size. Currently it's fontSize="2" in the JSX and font-size: 2px in the CSS. I'll bump it up a bit - maybe to 2.5 or 2.8 for the SVG text. In SVG the fontSize is in the coordinate system of the viewBox (0-100), so 2 is quite small. I will try 2.8 or 3.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I increased the node label font size from 2 to 2.8 in both the JSX (SVG fontSize attribute) and the CSS. That should make the text a bit more readable.
+</details></think>
+
+---
+
+
+Increased the node label font size from 2 to 2.8 in both the SVG `fontSize` attribute and the `.node-label` CSS so the labels are a bit larger and easier to read.
+
+---
+
