@@ -3,6 +3,7 @@ import './TravelMap.css'
 import { overworldMap } from '../data/overworldMap'
 import { travelMaps, NODE_TYPES } from '../data/travelMaps'
 import { testCards } from '../data/testCards'
+import { getDeckForPath, allRegionCards } from '../data/regionDecks'
 import Card from './Card'
 
 // Set to true to use the node-based travel map; false for the card-based approach
@@ -10,6 +11,20 @@ const USE_NODE_BASED_TRAVEL_MAP = false
 
 const CARD_ROWS = 3
 const CARD_SPOTS_PER_ROW = 6
+const TOP_ROW_DRAW_COUNT = 6
+
+function shuffle(array) {
+  const a = [...array]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function getCardById(id, testCardsList, regionCards) {
+  return testCardsList.find(c => c.id === id) ?? regionCards.find(c => c.id === id) ?? null
+}
 
 function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
   const [currentNodeId, setCurrentNodeId] = useState(null)
@@ -33,6 +48,22 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
       }
     }
   }, [pathId, connection])
+
+  // When entering a travel map (card-based), draw from the region deck and lay out on top row
+  useEffect(() => {
+    if (!pathId || USE_NODE_BASED_TRAVEL_MAP) return
+    const deck = getDeckForPath(pathId)
+    if (deck.length === 0) {
+      setPlacedCards({})
+      return
+    }
+    const drawn = shuffle(deck).slice(0, TOP_ROW_DRAW_COUNT)
+    const topRow = {}
+    drawn.forEach((card, i) => {
+      topRow[`0-${i}`] = card
+    })
+    setPlacedCards(topRow)
+  }, [pathId])
 
   const currentNode = pathData?.nodes.find((n) => n.id === currentNodeId)
   const connectedNodes = currentNode
@@ -60,9 +91,12 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
     const key = getSpotKey(rowIndex, spotIndex)
     if (selectedCardId) {
       const cardInSpot = placedCards[key]
-      setPlacedCards(prev => ({ ...prev, [key]: testCards.find(c => c.id === selectedCardId) }))
-      setHand(prev => prev.filter(id => id !== selectedCardId))
-      if (cardInSpot) setHand(prev => [...prev, cardInSpot.id])
+      const cardToPlace = getCardById(selectedCardId, testCards, allRegionCards)
+      if (cardToPlace) {
+        setPlacedCards(prev => ({ ...prev, [key]: cardToPlace }))
+        setHand(prev => prev.filter(id => id !== selectedCardId))
+        if (cardInSpot) setHand(prev => [...prev, cardInSpot.id])
+      }
       setSelectedCardId(null)
     } else if (placedCards[key]) {
       setHand(prev => [...prev, placedCards[key].id])
@@ -123,7 +157,7 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
             <p className="card-hand-hint">Click a card to select it, then click a spot to play it. Click a placed card to return it to hand.</p>
             <div className="card-hand-list">
               {hand.map(cardId => {
-                const card = testCards.find(c => c.id === cardId)
+                const card = getCardById(cardId, testCards, allRegionCards)
                 if (!card) return null
                 return (
                   <div

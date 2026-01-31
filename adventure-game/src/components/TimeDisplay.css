@@ -1,28 +1,51 @@
-.time-display {
+.time-weather-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto 2rem auto;
+  max-width: 500px;
+}
+
+.time-display.card,
+.weather-display.card {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
   border: 3px solid #555;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin: 0 auto 2rem auto;
-  max-width: 300px;
+  gap: 0.25rem;
+  min-width: 140px;
 }
 
-.time-label {
-  font-size: 1rem;
+.time-display.card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.weather-display.card {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+  color: #333;
+}
+
+.time-label,
+.weather-label {
+  font-size: 0.85rem;
   font-weight: 500;
   opacity: 0.9;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-.time-value {
-  font-size: 1.5rem;
+.time-value,
+.weather-value {
+  font-size: 1.35rem;
   font-weight: 700;
+}
+
+.time-value {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

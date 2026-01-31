@@ -5,6 +5,7 @@ import TravelMap from './components/TravelMap'
 import TimeDisplay from './components/TimeDisplay'
 import { overworldMap } from './data/overworldMap'
 import { TIME_OF_DAY, getNextTime } from './data/timeOfDay'
+import { DEFAULT_WEATHER } from './data/weather'
 
 function App() {
   const [currentView, setCurrentView] = useState('overworld') // 'overworld' or 'travel'
@@ -12,6 +13,7 @@ function App() {
   const [currentConnection, setCurrentConnection] = useState(null)
   const [currentPoint, setCurrentPoint] = useState('a')
   const [currentTime, setCurrentTime] = useState(TIME_OF_DAY.DAWN)
+  const [currentWeather, setCurrentWeather] = useState(DEFAULT_WEATHER)
 
   const handleTimeAdvance = () => {
     setCurrentTime(getNextTime(currentTime))
@@ -45,7 +47,7 @@ function App() {
   return (
     <div className="app">
       <h1>Adventure Game</h1>
-      <TimeDisplay currentTime={currentTime} />
+      <TimeDisplay currentTime={currentTime} currentWeather={currentWeather} />
       {currentView === 'overworld' ? (
         <OverworldMap
           currentPoint={currentPoint}
