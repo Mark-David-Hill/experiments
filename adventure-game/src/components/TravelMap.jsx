@@ -2,10 +2,23 @@ import { useState, useEffect } from 'react'
 import './TravelMap.css'
 import { overworldMap } from '../data/overworldMap'
 import { travelMaps, NODE_TYPES } from '../data/travelMaps'
+import { testCards } from '../data/testCards'
+import Card from './Card'
+
+// Set to true to use the node-based travel map; false for the card-based approach
+const USE_NODE_BASED_TRAVEL_MAP = false
+
+const CARD_ROWS = 3
+const CARD_SPOTS_PER_ROW = 6
 
 function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
   const [currentNodeId, setCurrentNodeId] = useState(null)
   const [pathData, setPathData] = useState(null)
+
+  // Card-based state: placed cards keyed by "row-index", hand = remaining card ids
+  const [placedCards, setPlacedCards] = useState({})
+  const [hand, setHand] = useState(() => testCards.map(c => c.id))
+  const [selectedCardId, setSelectedCardId] = useState(null)
 
   useEffect(() => {
     if (pathId) {
@@ -41,7 +54,116 @@ function TravelMap({ pathId, connection, onReturn, onArrive, onTimeAdvance }) {
     }
   }
 
-  if (!pathData || !currentNode) {
+  const getSpotKey = (rowIndex, spotIndex) => `${rowIndex}-${spotIndex}`
+
+  const handleSpotClick = (rowIndex, spotIndex) => {
+    const key = getSpotKey(rowIndex, spotIndex)
+    if (selectedCardId) {
+      const cardInSpot = placedCards[key]
+      setPlacedCards(prev => ({ ...prev, [key]: testCards.find(c => c.id === selectedCardId) }))
+      setHand(prev => prev.filter(id => id !== selectedCardId))
+      if (cardInSpot) setHand(prev => [...prev, cardInSpot.id])
+      setSelectedCardId(null)
+    } else if (placedCards[key]) {
+      setHand(prev => [...prev, placedCards[key].id])
+      setPlacedCards(prev => {
+        const next = { ...prev }
+        delete next[key]
+        return next
+      })
+    }
+  }
+
+  const handleCardInHandClick = (cardId) => {
+    setSelectedCardId(prev => prev === cardId ? null : cardId)
+  }
+
+  if (!pathData) {
+    return <div className="loading">Loading...</div>
+  }
+
+  if (!USE_NODE_BASED_TRAVEL_MAP) {
+    return (
+      <div className="travel-map">
+        <div className="travel-header">
+          <h2>Travel Map</h2>
+          <p className="path-info">{pathData.name}</p>
+          <p className="path-description">{pathData.description}</p>
+          <p className="entry-info">
+            Entered from: <strong>{overworldMap.points[connection.from]?.label}</strong>
+          </p>
+        </div>
+
+        <div className="travel-content travel-content-cards">
+          <div className="card-rows">
+            {Array.from({ length: CARD_ROWS }, (_, rowIndex) => (
+              <div key={rowIndex} className="card-row">
+                <span className="card-row-label">Row {rowIndex + 1}</span>
+                <div className="card-spots">
+                  {Array.from({ length: CARD_SPOTS_PER_ROW }, (_, spotIndex) => {
+                    const key = getSpotKey(rowIndex, spotIndex)
+                    const card = placedCards[key]
+                    return (
+                      <div
+                        key={spotIndex}
+                        className={`card-spot ${card ? 'filled' : ''} ${selectedCardId ? 'can-place' : ''}`}
+                        onClick={() => handleSpotClick(rowIndex, spotIndex)}
+                      >
+                        {card ? <Card card={card} /> : <span className="card-spot-empty">+</span>}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="card-hand">
+            <h3>Your cards</h3>
+            <p className="card-hand-hint">Click a card to select it, then click a spot to play it. Click a placed card to return it to hand.</p>
+            <div className="card-hand-list">
+              {hand.map(cardId => {
+                const card = testCards.find(c => c.id === cardId)
+                if (!card) return null
+                return (
+                  <div
+                    key={card.id}
+                    className={`card-hand-card ${selectedCardId === card.id ? 'selected' : ''}`}
+                    onClick={() => handleCardInHandClick(card.id)}
+                  >
+                    <Card card={card} />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="travel-exit-section">
+            <h3>Exit to overworld</h3>
+            <div className="travel-exit-buttons">
+              {pathData.connectedPoints.map(pointId => (
+                <button
+                  key={pointId}
+                  className="travel-exit-btn"
+                  onClick={() => handleExitClick(pointId)}
+                >
+                  {overworldMap.points[pointId]?.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="travel-controls">
+          <button onClick={onReturn} className="return-button">
+            Return to Overworld (without exiting)
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!currentNode) {
     return <div className="loading">Loading...</div>
   }
 
