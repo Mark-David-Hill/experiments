@@ -306,6 +306,11 @@
   text-align: center;
 }
 
+.card-spot.filled .card .card-sight {
+  font-size: 0.6rem;
+  margin-top: 0.2rem;
+}
+
 .card-spot-empty {
   font-size: 1.5rem;
   color: #ccc;

@@ -9,7 +9,7 @@ import Card from './Card'
 // Set to true to use the node-based travel map; false for the card-based approach
 const USE_NODE_BASED_TRAVEL_MAP = false
 
-const CARD_ROWS = 3
+const CARD_ROWS = 4
 const CARD_SPOTS_PER_ROW = 6
 const TOP_ROW_DRAW_COUNT = 6
 
