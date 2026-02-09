@@ -1,0 +1,142 @@
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #3d3d5c;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.piles {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.95rem;
+  color: #b8b8d0;
+}
+
+.pile {
+  font-weight: 500;
+}
+
+.hint {
+  color: #888;
+  font-size: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #555;
+  background: #2d2d44;
+  color: #eee;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn:hover {
+  background: #3d3d5c;
+  border-color: #667eea;
+}
+
+.btn-primary {
+  background: #667eea;
+  border-color: #5568d3;
+  margin-left: auto;
+}
+
+.btn-primary:hover {
+  background: #7688f0;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+section h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #b8b8d0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 60px;
+}
+
+.placeholder {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.card {
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  border: 2px solid #444;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-width: 100px;
+  text-align: center;
+  position: relative;
+}
+
+.card.in-hand {
+  background: linear-gradient(145deg, #2d3a5c 0%, #1e2a4a 100%);
+  color: #e0e8ff;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card.in-hand:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+  border-color: #667eea;
+}
+
+.card.played {
+  background: linear-gradient(145deg, #3d2d5c 0%, #2a1e4a 100%);
+  color: #e8e0ff;
+  border-color: #5c4a7a;
+}
+
+.card.market-card {
+  background: linear-gradient(145deg, #2d5c3d 0%, #1e4a2a 100%);
+  color: #e0ffe8;
+  cursor: pointer;
+  border-color: #4a7a5c;
+}
+
+.card.market-card:hover {
+  border-color: #6bc98a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 201, 138, 0.3);
+}
+
+.card .cost {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+.hand .btn {
+  margin-top: 1rem;
+}

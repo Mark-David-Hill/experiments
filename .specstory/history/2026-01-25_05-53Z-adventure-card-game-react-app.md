@@ -5432,11 +5432,523 @@ The string to replace was not found in the file.
 
 <details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/regionDecks.js</summary>
 
-Status: **loading**
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/regionDecks.js</summary>
 
 </details>
 
 </tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/regionDecks.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+The first regionDecks replace had a typo in my old_string ("when they are in hand" vs "when cards are in hand" and the comment about sight). Let me fix the forest deck - it seems the first replace failed. Let me read the file and fix forest deck.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/regionDecks.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Forest deck still has CHARACTERs without sight. I need to add sight to forest-scout, forest-guide, forest-owl.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/regionDecks.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/data/regionDecks.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Now update the Card component to show sight with an eye icon for characters. I'll add a small SVG eye and the number.
+</details></think>
+
+---
+
+
+Updating the Card component to show sight (eye icon + value) for characters:
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/Card.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/Card.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+TravelMap.css has styles for .card-spot.filled .card - we might need to ensure the sight line still looks good when the card is in a small spot. The card-sight has margin-top and small font - should be fine. Let me also add a bit of styling for the filled card's sight so it doesn't overflow (font size already reduced in filled context). Let me check if there's a .card-spot.filled .card .card-type rule - we have that. I could add .card-spot.filled .card .card-sight { font-size: 0.65rem; } or similar to keep it compact in the grid. Let me check TravelMap.css for filled card overrides.
+</details></think>
+
+---
+
+
+Ensuring the sight line stays compact when cards are placed in spots:
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "\\.card-spot\\.filled \\.card",
+  "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css",
+  "contextAfter": 2,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "\\.card-spot\\.filled \\.card",
+    "path": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Users/markhill/Documents/github/experiments": {
+        "content": {
+          "matches": [
+            {
+              "file": "adventure-game/src/components/TravelMap.css",
+              "matches": [
+                {
+                  "lineNumber": 278,
+                  "content": ".card-spot.filled .card {"
+                },
+                {
+                  "lineNumber": 279,
+                  "content": "  width: 100%;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 280,
+                  "content": "  height: 100%;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 296,
+                  "content": ".card-spot.filled .card h3 {"
+                },
+                {
+                  "lineNumber": 297,
+                  "content": "  font-size: 0.9rem;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 298,
+                  "content": "  margin: 0 0 0.25rem 0;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 303,
+                  "content": ".card-spot.filled .card .card-type {"
+                },
+                {
+                  "lineNumber": 304,
+                  "content": "  font-size: 0.7rem;",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 305,
+                  "content": "  margin: 0;",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 9,
+          "totalMatchedLines": 3
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I'll add a rule for .card-spot.filled .card .card-sight to keep it small when placed.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "/Users/markhill/Documents/github/experiments/adventure-game/src/components/Card.jsx",
+    "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/Card.jsx"
+    },
+    {
+      "relativeWorkspacePath": "/Users/markhill/Documents/github/experiments/adventure-game/src/components/TravelMap.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+All set. Summary for the user.
+</details></think>
+
+---
+
+
+Summary of changes:
+
+**1. Four rows**
+- In `TravelMap.jsx`, `CARD_ROWS` is now `4`, so the travel map has 4 rows of card spots.
+
+**2. Character sight (eye icon)**
+- **Data:** Every character card now has a `sight` value (1–3) in:
+  - `testCards.js`: Guide `sight: 1`, Scout `sight: 2`
+  - `regionDecks.js`: Guides 1, Scouts 2, Owls/Eagles/Herons 3, Camel/Ferryman 1 or 2
+- **Card component:** For character cards with `sight`, the card shows an eye icon (SVG) and the number (e.g. “2” = can see 2 spaces away). There’s a tooltip: “Can see N space(s) away.”
+- **Styling:** `.card-sight` shows the eye and value under the type; when the card is in a spot, the sight line uses a smaller font so it fits.
+
+The eye icon is a simple outline eye; the number is the sight value. Characters without `sight` are unchanged (e.g. if you add one later without the field).
+
+---
+
+_**User**_
+
+I think I want to flesh out the moment to moment gameplay first. Please make a new folder at the root of this project that will let me prototype basic deck-building gameplay
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user wants to create a new folder at the root of the experiments project to prototype basic deck-building gameplay. This should be a standalone prototype, separate from the adventure-game, focused on moment-to-moment deck-building mechanics.
+
+I'll create a new folder (e.g. `deck-building-prototype` or `deckbuilding-prototype`) with a minimal but functional setup. For a deck-building prototype I need to think about:
+
+1. **Core deck-building loop**: Draw hand → play cards → discard → draw new hand; acquire new cards to deck; shuffle when deck empty
+2. **Basic UI**: Deck count, discard count, hand (cards you can play), maybe a "play area", and a "market" or "shop" to acquire cards
+3. **Tech**: Could be plain HTML/JS, or a small Vite+React app like the adventure game. Given they have Vite/React in adventure-game, a similar setup would be consistent and quick to iterate. I'll use Vite + React to keep it simple and match the workspace.
+
+I'll create:
+- New folder at root: `deck-building-prototype/`
+- package.json (Vite + React)
+- index.html
+- src/main.jsx, App.jsx
+- Basic components: Deck, Hand, DiscardPile, Card (simple), maybe a Market/Supply row
+- Basic state: deck (array), hand (array), discard (array), maybe played cards this turn
+- Actions: draw cards, play card, end turn (discard hand, draw new hand), buy/acquire card from market
+
+Let me keep the prototype minimal but runnable. I'll use Vite + React like the other projects in the repo.
+</details></think>
+
+---
+
+
+Creating a new deck-building prototype folder with a minimal Vite + React app to prototype core draw/play/discard and acquire mechanics.
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="list_dir_v2">
+<details>
+<summary>Tool use: **list_dir_v2**</summary>
+
+
+Parameters:
+
+```json
+{
+  "targetDirectory": "/Users/markhill/Documents/github/experiments/smash-up",
+  "ignoreGlobs": [
+    "node_modules"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "directoryTreeRoot": {
+    "absPath": "/Users/markhill/Documents/github/experiments/smash-up",
+    "childrenDirs": [
+      {
+        "absPath": "/Users/markhill/Documents/github/experiments/smash-up/data",
+        "childrenFiles": [
+          {
+            "name": "card-types.json"
+          }
+        ],
+        "childrenWereProcessed": true
+      },
+      {
+        "absPath": "/Users/markhill/Documents/github/experiments/smash-up/src",
+        "childrenDirs": [
+          {
+            "absPath": "/Users/markhill/Documents/github/experiments/smash-up/src/components",
+            "childrenFiles": [
+              {
+                "name": "Card.jsx"
+              }
+            ],
+            "childrenWereProcessed": true
+          }
+        ],
+        "childrenFiles": [
+          {
+            "name": "App.css"
+          },
+          {
+            "name": "App.jsx"
+          },
+          {
+            "name": "index.css"
+          },
+          {
+            "name": "main.jsx"
+          }
+        ],
+        "childrenWereProcessed": true
+      }
+    ],
+    "childrenFiles": [
+      {
+        "name": ".gitignore"
+      },
+      {
+        "name": "eslint.config.js"
+      },
+      {
+        "name": "index.html"
+      },
+      {
+        "name": "package-lock.json"
+      },
+      {
+        "name": "package.json"
+      },
+      {
+        "name": "README.md"
+      },
+      {
+        "name": "vite.config.js"
+      }
+    ],
+    "childrenWereProcessed": true
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/smash-up/package.json</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I'll create deck-building-prototype with a similar structure. I need:
+- package.json
+- vite.config.js
+- index.html
+- src/main.jsx, App.jsx, index.css, App.css
+- .gitignore
+- Basic deck-building state and UI: deck, hand, discard, play area; draw, play card, end turn; optional market to acquire cards
+
+Let me create a minimal but complete prototype.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Create deck-building-prototype folder and Vite+React setup
+- [ ] Add core deck state: deck, hand, discard, draw/play/end turn
+- [ ] Add simple market and acquire mechanic
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/smash-up/index.html</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/smash-up/vite.config.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/smash-up/src/main.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Creating the folder structure and files. I'll add:
+1. package.json, vite.config.js, index.html, .gitignore
+2. src/main.jsx, index.css
+3. src/App.jsx and App.css with deck-building state and UI
+4. src/data/cards.js - simple card definitions (name, cost, type)
+5. Optional: simple Card component
+
+Keep the prototype focused: draw hand at start, show deck/hand/discard counts, "Draw" to draw a card, "Play" on a card to play it (move to play area), "End turn" to discard hand and play area into discard then draw new hand. Optionally a market row with "Acquire" to add a card to discard. I'll include a minimal market so "deck-building" is actually there.
+</details></think>
+
+---
+
+
+
+
 
 ---
 
