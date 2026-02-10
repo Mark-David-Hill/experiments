@@ -140,3 +140,81 @@ section h2 {
 .hand .btn {
   margin-top: 1rem;
 }
+
+/* Center decks — 3 columns, cards stack downward */
+.center-decks {
+  margin-bottom: 2rem;
+}
+
+.center-decks h2 {
+  margin-bottom: 1rem;
+}
+
+.center-columns {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.center-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.center-column-label {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.draw-center-btn {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.draw-center-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.center-cards-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 52px;
+  width: 100%;
+  align-items: center;
+}
+
+.center-card {
+  background: linear-gradient(145deg, #3d3a5c 0%, #2a274a 100%);
+  color: #e0e8ff;
+  border-color: #5c5a7a;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  min-width: 100px;
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.btn-done {
+  display: block;
+  margin: 0 auto;
+}
