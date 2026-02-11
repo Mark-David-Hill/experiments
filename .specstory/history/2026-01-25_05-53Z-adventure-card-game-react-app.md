@@ -6189,7 +6189,6 @@ Let me implement. I'll need to update the data to have 3 center deck definitions
 
 ---
 
-
 Implementing the new turn structure: three center decks, one card drawn from each to start, and optional push-your-luck draws that add to a column and give an extra player draw.
 
 
@@ -6229,8 +6228,6 @@ I'll create CENTER_DECK_A, B, C in cards.js - each an array of card definitions.
 
 
 
-
-
 ---
 
 <tool-use data-tool-type="task" data-tool-name="todo_write">
@@ -6259,8 +6256,6 @@ Adding center deck data. Each center deck will have a theme and a list of card d
 </details></think>
 
 ---
-
-
 
 
 
@@ -6293,7 +6288,6 @@ I need to be careful with the order of state updates. For startTurn we need to u
 
 ---
 
-
 Implementing the full flow with a single state object so turn logic stays consistent:
 
 
@@ -6317,7 +6311,6 @@ Use a single state object so we can do one atomic update for endTurn and for dra
 </details></think>
 
 ---
-
 
 Consolidating state and fixing draw/end-turn logic.
 
@@ -6345,7 +6338,6 @@ I'll refactor to use one state object: state = { deck, hand, discard, played, en
 
 ---
 
-
 Fixing a stale-closure in drawFromCenter by using a single state object:
 
 
@@ -6367,7 +6359,6 @@ Now add CSS for the center columns so cards stack vertically and "slide down" - 
 </details></think>
 
 ---
-
 
 Adding CSS for the three center columns so cards stack vertically and new cards slide in from the top:
 
@@ -6394,8 +6385,6 @@ Todo: mark tasks complete.
 </details></think>
 
 ---
-
-
 
 
 
@@ -6453,7 +6442,6 @@ All good. Let me give a short summary to the user.
 
 ---
 
-
 Summary of what’s implemented:
 
 **Turn structure**
@@ -6509,8 +6497,6 @@ I should search for deck-building games with similar mechanics - multiple draw p
 
 
 
-
-
 ---
 
 <tool-use data-tool-type="search" data-tool-name="web_search">
@@ -6526,25 +6512,427 @@ I should search for deck-building games with similar mechanics - multiple draw p
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="web_search">
+<tool-use data-tool-type="search" data-tool-name="web_search">
 <details>
-<summary>Tool use: **web_search**</summary>
-
-
-Parameters:
-
-```json
-{
-  "searchTerm": "deck builder game draw phase choose to draw more cards similar mechanics"
-}
-```
-User decision: **accepted**
-
-Status: **loading**
-
+            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
+        
+| Title | URL | Chunk |
+|-------|-----|-------|
+| Web search results for query: deck builder game draw phase choose to draw more cards similar mechanics |  | Links:<br/>1. [Making sure you're not a bot!](https://wiki.dominionstrategy.com/index.php/Draw)<br/>2. [Magic: The Gathering Comprehensive Rules](https://ancestral.vision/game-concepts/drawing-a-card.html)<br/>3. [Hero Realms Base Game Rules](https://www.herorealms.com/base-game-rules/)<br/>4. [](https://archonarcana.com/Drawing_Cards)<br/>5. [Abundance (Tenth Edition English) \| Magic: The Gathering](https://gatherer.wizards.com/10E/en-us/249/abundance)<br/><br/># Deck Builder Games with Draw Phase Choice Mechanics<br/><br/>The search results don't provide a comprehensive list of deck builder games with optional draw mechanics, but they do illustrate how draw phases work in several card games:<br/><br/>**Magic: The Gathering** features conditional draw mechanics through cards like Abundance, which allows players to replace normal draws with a choice to search for either a land or nonland card from their deck.[2][5] This gives players agency over what they draw rather than simply drawing the top card.<br/><br/>**Hero Realms**, a deck-building game, uses a traditional draw phase where players draw cards at the start of their turn to build their hand before playing cards for resources like Gold and Combat.[3]<br/><br/>**KeyForge** follows a standard draw system where players draw cards one at a time to refill their hand during their draw step, with the number determined before drawing begins.[4]<br/><br/>**Magic: The Gathering's comprehensive rules** also note that some effects allow players to choose whether to draw multiple cards, giving them decision-making power over card draws.[2]<br/><br/>The common thread across these games is that while basic draw phases are automatic, many games include card effects or abilities that let players make choices about their draws—either replacing draws with searches, choosing what to draw, or deciding whether to draw at all. |
 
 </details>
 </tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Let me search more specifically for games with "three rows" or "multiple supply piles" or games like Star Realms/Hero Realms market, or Ascension-style center row, and also for "draw from multiple decks" or "column" style markets.
+</details></think>
+
+---
+
+
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="web_search">
+<details>
+            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
+        
+| Title | URL | Chunk |
+|-------|-----|-------|
+| Web search results for query: Ascension Star Realms center row market deck builder multiple piles |  | Links:<br/>1. [](https://files.wisewizardgames.com/starrealms/StarRealms_Frontiers_RuleBook2.pdf)<br/>2. [Rules Updates and Clarifications](https://www.starrealms.com/faq/)<br/>3. [Learn to Play](https://www.starrealms.com/learn-to-play/)<br/>4. [RulesPal](https://www.rulespal.com/star-realms/rulebook)<br/>5. [Star Realms Game Rules](https://ultraboardgames.com/star-realms/game-rules.php)<br/><br/># Star Realms Market Deck and Center Row<br/><br/>In Star Realms, the **market** (called the "Trade Row" or "Center Row") consists of **5 cards** laid out face-up from a shuffled Trade Deck.[1][3][5] This is a single central market shared by all players, not multiple separate piles.<br/><br/>When a card is acquired from the Trade Row using Trade resources, it is immediately replaced with the top card from the Trade Deck, maintaining the 5-card display.[3]<br/><br/>## Market Deck Composition<br/><br/>For building a market deck with cards from multiple Star Realms products, the recommended quantities are based on rarity:[2]<br/>- **Gold (Rare)**: 1 copy per card<br/>- **Silver (Uncommon)**: 2 copies per card  <br/>- **White (Common)**: 3 copies per card<br/><br/>The Trade Deck in the standard game contains 80 cards total (20 from each of the four factions).[1][5]<br/><br/>There is no system of "multiple piles" in the standard market—all cards come from the single Trade Deck that feeds the 5-card Trade Row display. |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="web_search">
+<details>
+            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
+        
+| Title | URL | Chunk |
+|-------|-----|-------|
+| Web search results for query: deck building game "draw" "from" "pile" OR "column" optional extra cards turn |  | Links:<br/>1. [](https://www.deadmansdrawgame.com/)<br/>2. [Rules \| Piles Card Game](https://pilescardgame.com/rules/)<br/>3. [Card Games: Draw and Discard](https://boardgamegeek.com/boardgamefamily/24439/card-games-draw-and-discard)<br/>4. [Instructions & Strategy](https://stackthedeckcardgame.com/instructions-%26-strategy)<br/>5. [Team & Deck Builder \| Chaos Zero Nightmare (CZN) \| Prydwen Institute](https://prydwen.gg/chaos-zero-nightmare/deck-builder)<br/><br/>Based on the search results, here are deck building games featuring optional extra card draws:<br/><br/>**Stack The Deck™** is a card game where players draw 2 cards per turn as a standard action.[4] On each turn, you must play at least one card on your stacks (building pairs or runs), and then have the option to play your second card either on your own stacks or steal an opponent's stack.[4] The game uses a draw pile in the center, and discarded cards are reinserted back into the deck.[4]<br/><br/>**Piles** is a simultaneous-play card game where players work with six piles of cards arranged in columns in front of them.[2] During gameplay, you discard one card to a center pile and then draw one card from the center to replace it, maintaining four cards per pile.[2] The game features a draw pile in the center of the table with face-up cards available for drawing.[2]<br/><br/>**Dead Man's Draw** is a press-your-luck card game where you draw cards from a pile, with the option to continue drawing additional cards on your turn or stop and bank your gains.[1] The game involves chaining together card combos for points.<br/><br/>These games all feature the mechanic of drawing cards from a central pile or column arrangement with options to take additional cards during a turn. |
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Let me try one more search for games that have "three" separate decks or rows that you draw from, or similar to "flip and reveal" from multiple sources.
+</details></think>
+
+---
+
+
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="web_search">
+<details>
+            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
+        
+| Title | URL | Chunk |
+|-------|-----|-------|
+| Web search results for query: deck builder three separate decks market flip reveal push luck |  | Links:<br/>1. [Team & Deck Builder \| Chaos Zero Nightmare (CZN) \| Prydwen Institute](https://prydwen.gg/chaos-zero-nightmare/deck-builder)<br/>2. [Flip 7](https://boardgamegeek.com/boardgame/420087/flip-7)<br/>3. [Flip 7](https://theop.games/pages/flip-7)<br/>4. [Fetch-Building](https://spacebiff.com/2025/09/19/unstoppable/)<br/>5. [Post navigation](https://www.majorfun.com/flip-7/)<br/><br/># Summary<br/><br/>Based on your search query, here's what I found:<br/><br/>**Flip 7** appears to be the most relevant match. It's a card game that combines elements of blackjack, rummy, and poker with a press-your-luck mechanic.[5] Players try to assemble a set of 7 cards one by one each round, choosing each turn whether to "hit" (extend their set and score) or "stand" (bank their points safely). The risk is that a single matching card will bust the player back to nothing.[5]<br/><br/>**Unstoppable** is a solitaire deck-building game that features a card market system.[4] It uses a unique card-layering mechanic where cards are placed in plastic sleeves to modify other cards. Players draw cards from their deck and place them as threats that must be defeated.[4]<br/><br/>However, neither of these games explicitly matches all the specific mechanics you mentioned (three separate decks, market, flip, reveal, push, luck). The search results don't appear to contain a game with that exact combination of features. You may want to refine your search with additional details about the game you're looking for. |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="web_search">
+<details>
+            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
+        
+| Title | URL | Chunk |
+|-------|-----|-------|
+| Web search results for query: "Hardback" deck building press your luck draw extra cards |  | Links:<br/>1. [Hardback Game Rules](https://ultraboardgames.com/hardback/game-rules.php)<br/>2. [Hardback Fan Site \| UltraBoardGames](https://ultraboardgames.com/hardback)<br/>3. [](https://cs.uwaterloo.ca/~dtompkin/dtlib/base/Hardback.pdf)<br/>4. [The Cardboard Cantina](https://thecardboardcantina.com/hardback/)<br/>5. [Buy Hardback Card Game \| Oxford Games](https://oxfordgames.co.uk/shop/hardback/)<br/><br/># Hardback: Deck Building with Press Your Luck<br/><br/>**Hardback** is a deck-building word game where players take on the role of 19th-century novelists competing to earn prestige points.[1] <br/><br/>## Core Mechanics<br/><br/>Players build personalized decks of letter cards and use them to spell words, acquire new cards, and accumulate prestige.[1] The game combines deck building with word construction—you must be able to form valid words from the cards you draw.<br/><br/>## Press Your Luck System<br/><br/>The "press your luck" element is implemented through an **Ink token system**.[2][5] Players can spend Ink tokens to draw extra cards beyond their initial hand, allowing them to take risks for more options. However, the catch is that you must still be able to spell a valid word with whatever cards you ultimately have in play—pushing your luck too far can leave you unable to complete a word.[1][3]<br/><br/>## Deck Specialization<br/><br/>Players can specialize their decks by focusing on specific genres (Romance, Mystery, Adventure, and Horror) to exploit card combinations and trigger genre-based bonus abilities.[1][2]<br/><br/>## Game Details<br/><br/>- **Players:** 1-5<br/>- **Playing Time:** 45-90 minutes  <br/>- **Objective:** First to reach 60 prestige points wins[5]<br/><br/>The game includes multiple variants and a cooperative mode for added variety.[2][5] |
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I have a good picture now. Let me summarize for the user:
+
+1. **Your mechanic** is quite specific: 3 center decks, 1 card revealed from each at start of turn, then optionally draw more from any of those 3 (column grows, and you also draw from your own deck). So it's:
+   - Multiple separate "market" decks (3) rather than one shared row
+   - Push-your-luck = "draw more from center + get more from your deck"
+   - Column/stack growth per deck
+
+2. **Similar games found:**
+   - **Hardback**: Deck-building + press-your-luck. You spend Ink to draw *extra cards* and must still spell a word. So "choose to draw more" with a risk (might not spell). Not multiple center decks though—one market.
+   - **Dead Man's Draw**: Push-your-luck, draw from one central deck; same-suit = bust. Not deck-building, and single pile.
+   - **Star Realms / Ascension**: Single center row (5 cards) from one deck; buy from the row. No "draw more from center and also from your deck" or 3 separate piles.
+   - **TEN**: Push-your-luck, draw from central deck, try not to exceed 10. Not really deck-building in the same sense.
+   - **Piles**: Six piles in columns, draw/discard from center. Different structure.
+
+None of these do the exact thing: 3 independent center decks, each revealing a column, and the choice to "draw from this column (add to column) and draw from your deck." So I should say: there are games with *pieces* of this (push-your-luck, multiple piles, optional extra draws), but the specific combo of 3 center decks + column growth + "draw from center and from your deck" doesn't appear to have a well-known direct match. I'll mention the closest ones and that the combination seems fairly unique.
+</details></think>
+
+---
+
+Here’s how your idea compares to what’s out there:
+
+**Closest overlaps (but not the same):**
+
+- **Hardback** (deck-building + press-your-luck)  
+  You can spend Ink to **draw extra cards** during your turn, then you must spell a word with what you have. So there’s a clear “choose to draw more” risk. The market is a single offer row (Adventure / Horror / etc.), not three separate decks with columns.
+
+- **Dead Man’s Draw** (push-your-luck, not deck-building)  
+  You draw from **one** central deck and can keep drawing; drawing two of the same suit busts you. So: one shared pile and a simple push-your-luck rule, no “three decks” or “draw from center and from your deck.”
+
+- **Star Realms / Ascension**  
+  One **center row** (e.g. 5 cards) from a single market deck; you buy from that row. No “draw from this pile and also from your deck,” and no three independent piles.
+
+- **TEN**  
+  Push-your-luck with a central deck (don’t go over 10). Not a deck-builder and no column/multi-pile structure like yours.
+
+**Your mix is uncommon:**
+
+- **Three center decks**, each with its own **column** that grows as you draw from it.  
+- **Optional draw** = “draw one more from this center column **and** one from your deck.”  
+- That specific “grow a column + fuel your hand” push-your-luck isn’t something that shows up in the usual references.
+
+So: there are deck-builders with optional/push-your-luck draws (e.g. Hardback) and games with central draw piles and risk (e.g. Dead Man’s Draw), but the exact pattern—three separate center decks, column growth, and “draw from this column + draw from your deck”—doesn’t match a well-known title. It’s a distinct twist you can treat as your own unless you later find a niche or digital game that does it.
+
+---
+
+_**User**_
+
+Nice. For this one, I would like to be able to see your current hand of cards at the bottom while you're deciding if you want to draw more cards.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user wants to see their current hand of cards at the bottom of the screen during the draw phase (when they're deciding whether to draw more from the center decks). Right now in the draw phase we only show the center columns and the "Done drawing" button - the hand is only visible in the play phase.
+
+I need to show the hand during phase === 'draw' as well, at the bottom of the screen.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to see the draw phase section and add a hand display at the bottom. Let me read the part where we render phase === 'draw'.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I'll add a hand section at the bottom of the draw phase. The hand should be read-only (no play) during draw - just display the cards. I can reuse the same card styling but without the button/click for play. I'll add a section like "Your hand" with the cards in a row at the bottom.
+</details></think>
+
+---
+
+
+Adding a read-only hand display at the bottom during the draw phase.
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I added the hand section. The cards use the same .in-hand styling but with .display-only so we can remove cursor/pointer and any hover "play" feel if desired. Let me add a small CSS tweak so the draw-phase hand is clearly at the bottom and the display-only cards don't look clickable.
+</details></think>
+
+---
+
+
+Adding CSS so the draw-phase hand sits at the bottom and cards look read-only:
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+To make the hand truly "at the bottom" of the viewport we could use flexbox on .app with flex-direction column and min-height 100vh, then margin-top: auto on the hand section. Let me check the app layout.
+</details></think>
+
+---
+
+
+Making the layout keep the hand at the bottom when the content is short:
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+When phase is 'play', we have multiple sections that don't use margin-top: auto, so the flex layout might push things oddly. Let me check - the hand-draw-phase is only rendered when phase === 'draw', so the .hand-draw-phase class is only on that one section. When we're in play phase, the .app has flex and column, but no child has margin-top: auto, so the content will just flow from top. That's fine. When in draw phase, we have center-decks and then hand-draw-phase; hand-draw-phase has margin-top: auto so it will stick to the bottom. Good.
+</details></think>
+
+---
+
+
+Summary of changes:
+
+**Draw phase – hand at the bottom**
+- In the draw phase, a **“Your hand (n)”** section is shown below the center decks and “Done drawing” button.
+- It lists all cards currently in your hand in a row, using the same card style as the play phase but **read-only** (no hover/click).
+- Cards use the class `display-only` so they don’t look or act clickable.
+
+**Layout**
+- `.app` is a flex column with `min-height: 100vh`.
+- The draw-phase hand section has `margin-top: auto` so it sits at the **bottom** of the viewport when you’re deciding whether to draw more.
+- A top border and padding separate it from the center row above.
+
+You always see your current hand at the bottom while choosing to draw from Left/Center/Right or hit “Done drawing.”
+
+---
+
+_**User**_
+
+I don't see more cards being added to my hand as I draw cards from the 3 columns.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user is saying that when they draw from one of the 3 center columns, they don't see more cards being added to their hand. So the "draw one from your deck to hand" part of the drawFromCenter action might not be working correctly.
+
+Let me look at the drawFromCenter logic again. When we draw from center we:
+1. Take a card from centerDecks[columnIndex] and add it to centerColumns[columnIndex]
+2. Draw 1 from player deck to hand (reshuffle discard if deck empty)
+
+The state update is done in one setState callback. Let me check if there's a bug - maybe the player deck draw logic is wrong, or the hand isn't being updated properly.
+</details></think>
+
+---
+
+
+Checking the draw-from-center logic to see why the hand isn't updating:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+The logic looks correct:
+- playerSource = s.deck
+- If deck is empty and discard has cards, we reshuffle (playerSource = deck + discard, newDiscard = [])
+- playerDrawn = first card of playerSource (or [])
+- newDeck = rest of playerSource
+- newHand = s.hand + playerDrawn
+
+One potential bug: when we have an empty deck and non-empty discard, we set playerSource = shuffle([...playerSource, ...newDiscard]). But playerSource was [...s.deck] which is [], and newDiscard is [...s.discard]. So playerSource becomes shuffle(discard). Good. Then we set newDiscard = []. So we're drawing from the reshuffled pile. But wait - we're mutating playerSource and newDiscard in the same closure. So after the if block, playerSource could be the full shuffled deck+discard, and newDiscard is []. Then playerDrawn = playerSource.slice(0, 1), newDeck = playerSource.slice(1). So we're drawing one card. That's correct.
+
+Oh! I see a possible issue. When the game starts we have:
+- 5 cards in starter deck, we draw 5 to hand, so deck is EMPTY (newDeck has 0 cards).
+- So after start, deck = [], hand = 5 cards.
+
+So when the user clicks "Draw from Left" (or any column):
+- playerSource = [...s.deck] = []
+- newDiscard = [...s.discard] = []
+- The condition playerSource.length < 1 && newDiscard.length > 0 is FALSE (discard is empty)
+- So we don't reshuffle. playerDrawn = [] (since playerSource.length is 0), newDeck = []
+- newHand = [...s.hand, ...playerDrawn] = s.hand (unchanged)
+
+So the issue is: at the start of the game we've drawn all 5 cards from the deck, so the deck is empty. When we draw from a center column we're supposed to also draw 1 from our deck - but our deck is empty and our discard is empty (we haven't played or discarded yet). So we literally can't draw from our deck!
+
+So the fix could be:
+1. Don't draw 5 at the very start - draw 5 at the start of each turn. So at game start we might have 0 in hand and then "start turn" draws 5. But that would change the flow.
+2. Or: when we draw from center and our deck is empty, shuffle the discard into the deck. But at start of first turn, discard IS empty. So the only fix is to have cards in the deck when we're in the draw phase.
+
+Actually re-reading the design: "At the start of your turn I want the player to draw 5 cards." So at start of turn we draw 5. So after that draw, the deck has 0 cards (since starter deck only had 5). So on the first turn, after drawing 5, the deck is empty. So when they click "Draw from Left", we try to draw 1 from deck but deck is empty. So we need to either:
+A) Have a bigger starter deck so there are cards left in the deck after drawing 5 (e.g. 10 cards, draw 5, 5 remain).
+B) Or when deck is empty we shuffle the discard - but on turn 1 discard is empty. So the only way to get more draws is to have more cards in the deck.
+
+Let me check the starter deck size: STARTER_CARDS has 5 cards. So we draw 5, deck is empty. So the "draw one from your deck" when drawing from center will never add a card on the first turn. That's the bug the user is seeing!
+
+Fix: increase the starter deck size so there are cards left in the deck after the initial draw of 5. For example 10 starter cards: draw 5, 5 remain. Then when they "Draw from Left" we take 1 from deck (4 left), hand goes from 5 to 6. That way the user will see their hand grow.
+
+I'll add more cards to the starter deck so there's something to draw from.
+</details></think>
+
+---
+
+
+Checking the starter deck and initial draw:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/data/cards.js</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+The starter deck has exactly 5 cards. So at game start we draw 5, and the deck is empty. When the user clicks "Draw from Left/Center/Right", we do draw 1 from the player deck - but the deck is empty and discard is empty (nothing has been played yet), so playerDrawn is [] and the hand doesn't grow.
+
+Fix: expand the starter deck so there are cards left after drawing 5 (e.g. 10 cards). Then when they draw from a center column they'll get one of those remaining 5 cards added to their hand.
+</details></think>
+
+---
+
+
+Starter deck has only 5 cards; we draw 5 at turn start, so the deck is empty. Drawing from a center column tries to draw from the player deck but finds nothing. Expanding the starter deck so cards remain to draw.
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/data/cards.js</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Now the starter deck has 8 cards. So at game start we draw 5, and 3 remain in the deck. When the user clicks "Draw from Left" they'll get 1 from the deck (2 left) and their hand will go from 5 to 6. Good.
+
+I should also make the "draw from deck" logic robust when deck is empty but discard has cards (e.g. after end of turn we put hand+played into discard, then draw 5 - so we shuffle discard into deck and draw 5. So at start of next turn deck could be empty again if the deck+discard had exactly 5 cards... Actually after end turn we have drawFromPlayerPile(deck, newDiscard, HAND_SIZE). So we're drawing 5 from deck+discard. If we had 8 total, we'd have 3 in deck and 5 in discard (hand+played). We'd shuffle to get 8, draw 5, so 3 left in deck. So next turn we have 3 in deck. When they draw from center we draw 1, 2 left. So we're good. And if they've acquired market cards, the deck grows. So 8 starter cards is a good fix.
+</details></think>
+
+---
+
+
+Summary of what was wrong and what changed:
+
+**Cause:** The starter deck had only **5** cards, and at the start of each turn you **draw 5**. So after that draw the deck was empty. When you clicked “Draw from Left/Center/Right,” the code did try to draw 1 from your deck and add it to your hand, but the deck was empty (and discard was empty on the first turn), so no card was added and the hand stayed at 5.
+
+**Change:** The starter deck was increased so there are cards left after the initial 5-card draw. It’s now **8** cards (e.g. 4 Strike, 4 Defend). You still draw 5 at the start of the turn, but **3** stay in the deck. When you draw from one of the three center columns, you now get 1 of those 3 from your deck into your hand, and the “Deck” count goes down (e.g. 3 → 2 → 1 → 0). Once the deck is empty, the existing logic will shuffle your discard into your deck when you draw from a center column again (after you’ve played and ended a turn), so the hand can keep growing in later turns too.
+
+So: the draw-from-center logic was already correct; the deck was just empty. With a larger starter deck, you should see your hand grow when you draw from the columns.
 
 ---
 

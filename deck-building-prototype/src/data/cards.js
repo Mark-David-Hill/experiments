@@ -1,12 +1,16 @@
 // Card definitions for deck-building prototype
 // { id, name, cost } — cost is used to acquire from market
 
+// Need more than HAND_SIZE (5) so there are cards left to draw when pushing from center columns
 export const STARTER_CARDS = [
   { id: 'strike', name: 'Strike', cost: 0 },
   { id: 'strike-2', name: 'Strike', cost: 0 },
   { id: 'strike-3', name: 'Strike', cost: 0 },
+  { id: 'strike-4', name: 'Strike', cost: 0 },
   { id: 'defend', name: 'Defend', cost: 0 },
   { id: 'defend-2', name: 'Defend', cost: 0 },
+  { id: 'defend-3', name: 'Defend', cost: 0 },
+  { id: 'defend-4', name: 'Defend', cost: 0 },
 ]
 
 export const MARKET_CARDS = [

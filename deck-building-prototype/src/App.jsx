@@ -230,6 +230,21 @@ function App() {
               Done drawing
             </button>
           </section>
+
+          <section className="hand hand-draw-phase">
+            <h2>Your hand ({hand.length})</h2>
+            <div className="card-row">
+              {hand.length === 0 && (
+                <span className="placeholder">No cards in hand</span>
+              )}
+              {hand.map((card) => (
+                <div key={card.instanceId} className="card in-hand display-only">
+                  {card.name}
+                  {card.cost > 0 && <span className="cost">{card.cost}</span>}
+                </div>
+              ))}
+            </div>
+          </section>
         </>
       )}
 

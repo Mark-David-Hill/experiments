@@ -1,6 +1,9 @@
 .app {
   max-width: 900px;
   margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -217,4 +220,27 @@ section h2 {
 .btn-done {
   display: block;
   margin: 0 auto;
+}
+
+/* Hand during draw phase — anchored at bottom, read-only */
+.hand-draw-phase {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+  border-top: 2px solid #3d3d5c;
+}
+
+.hand-draw-phase h2 {
+  margin-bottom: 0.5rem;
+}
+
+.card.display-only {
+  cursor: default;
+  pointer-events: none;
+}
+
+.card.display-only:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #444;
 }
