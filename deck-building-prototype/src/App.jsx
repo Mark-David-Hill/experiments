@@ -4,6 +4,8 @@ import {
   MARKET_CARDS,
   CENTER_DECK_DEFS,
   CENTER_DECK_LABELS,
+  CARD_COLORS,
+  getCardTextColor,
   createCardInstance,
 } from './data/cards'
 import './App.css'
@@ -218,7 +220,14 @@ function App() {
                   </button>
                   <div className="center-cards-column">
                     {(centerColumns[i] || []).map((card) => (
-                      <div key={card.instanceId} className="card center-card">
+                      <div
+                        key={card.instanceId}
+                        className="card center-card"
+                        style={{
+                          background: CARD_COLORS[card.color] ?? '#444',
+                          color: getCardTextColor(card.color),
+                        }}
+                      >
                         {card.name}
                       </div>
                     ))}
@@ -238,7 +247,14 @@ function App() {
                 <span className="placeholder">No cards in hand</span>
               )}
               {hand.map((card) => (
-                <div key={card.instanceId} className="card in-hand display-only">
+                <div
+                  key={card.instanceId}
+                  className="card in-hand display-only"
+                  style={{
+                    background: CARD_COLORS[card.color] ?? '#444',
+                    color: getCardTextColor(card.color),
+                  }}
+                >
                   {card.name}
                   {card.cost > 0 && <span className="cost">{card.cost}</span>}
                 </div>
@@ -257,7 +273,14 @@ function App() {
                 <span className="placeholder">Play cards from hand</span>
               )}
               {played.map((card) => (
-                <div key={card.instanceId} className="card played">
+                <div
+                  key={card.instanceId}
+                  className="card played"
+                  style={{
+                    background: CARD_COLORS[card.color] ?? '#444',
+                    color: getCardTextColor(card.color),
+                  }}
+                >
                   {card.name}
                 </div>
               ))}
@@ -273,6 +296,10 @@ function App() {
                   type="button"
                   className="card in-hand"
                   onClick={() => playCard(card)}
+                  style={{
+                    background: CARD_COLORS[card.color] ?? '#444',
+                    color: getCardTextColor(card.color),
+                  }}
                 >
                   {card.name}
                   {card.cost > 0 && <span className="cost">{card.cost}</span>}
@@ -293,6 +320,10 @@ function App() {
                   type="button"
                   className="card market-card"
                   onClick={() => acquire(card)}
+                  style={{
+                    background: CARD_COLORS[card.color] ?? '#444',
+                    color: getCardTextColor(card.color),
+                  }}
                 >
                   {card.name}
                   <span className="cost">{card.cost}</span>
