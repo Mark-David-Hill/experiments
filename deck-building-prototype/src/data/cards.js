@@ -64,6 +64,21 @@ export const CENTER_DECK_DEFS = [
 
 export const CENTER_DECK_LABELS = ['Left', 'Center', 'Right']
 
+// Liminal deck — draw only when the top card of each center column is the same color (3 in a row).
+// Spirit/youkai themed; causes fantastical interactions with regular cards.
+export const LIMINAL_DECK_DEFS = [
+  { id: 'lim-kitsune', name: 'Kitsune', cost: 0, color: 'gold' },
+  { id: 'lim-tengu', name: 'Tengu', cost: 0, color: 'black' },
+  { id: 'lim-kappa', name: 'Kappa', cost: 0, color: 'darkBlue' },
+  { id: 'lim-yuki', name: 'Yuki-onna', cost: 0, color: 'white' },
+  { id: 'lim-nue', name: 'Nue', cost: 0, color: 'violet' },
+  { id: 'lim-oni', name: 'Oni', cost: 0, color: 'red' },
+  { id: 'lim-nurari', name: 'Nurarihyon', cost: 0, color: 'black' },
+  { id: 'lim-bake', name: 'Bake-danuki', cost: 0, color: 'gold' },
+  { id: 'lim-rokuro', name: 'Rokurokubi', cost: 0, color: 'violet' },
+  { id: 'lim-mizuki', name: 'Mizuki', cost: 0, color: 'darkBlue' },
+]
+
 /** Create a copy of a card with a unique instance id (for deck/hand tracking) */
 export function createCardInstance(card, instanceId) {
   return { ...card, instanceId: instanceId ?? `${card.id}-${Math.random().toString(36).slice(2, 9)}` }

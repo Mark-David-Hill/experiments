@@ -170,6 +170,14 @@ section h2 {
   max-width: 200px;
 }
 
+.center-column-stack {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .center-column-label {
   font-size: 0.8rem;
   color: #888;
@@ -188,12 +196,51 @@ section h2 {
 }
 
 .center-cards-column {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-height: 52px;
   width: 100%;
   align-items: center;
+}
+
+/* Facedown Liminal card — peeks out from under the middle column’s bottom card */
+.liminal-under-slot {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -0.5rem;
+  z-index: 0;
+}
+
+.card-facedown-peek {
+  width: 100px;
+  min-width: 100px;
+  height: 22px;
+  margin-top: -16px;
+  background: linear-gradient(180deg, #1a0a2a 0%, #2a1a3a 50%, #3a2a4a 100%);
+  border: 2px solid #5a2d82;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.liminal-under-slot .liminal-slot-empty {
+  font-size: 0.7rem;
+  color: #555;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.liminal-under-slot .liminal-interact-btn {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
 }
 
 .center-card {
@@ -217,9 +264,103 @@ section h2 {
   }
 }
 
+.done-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.done-blocked-hint {
+  font-size: 0.9rem;
+  color: #9a5ccc;
+}
+
 .btn-done {
   display: block;
-  margin: 0 auto;
+}
+
+.btn-done:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.liminal-deck {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(90, 45, 130, 0.15);
+  border: 2px solid #5a2d82;
+  border-radius: 12px;
+}
+
+.liminal-deck h2 {
+  margin: 0 0 0.5rem 0;
+}
+
+.liminal-hint {
+  font-size: 0.9rem;
+  color: #b8b8d0;
+  margin: 0 0 0.75rem 0;
+  max-width: 480px;
+}
+
+.liminal-btn {
+  background: #5a2d82;
+  border-color: #7b3dad;
+}
+
+.liminal-btn:hover:not(:disabled) {
+  background: #7b3dad;
+  border-color: #9a5ccc;
+}
+
+.liminal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.liminal-slot-empty {
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+}
+
+.card-facedown {
+  background: linear-gradient(145deg, #2a1a3a 0%, #1a0a2a 100%) !important;
+  color: #7b5c9e !important;
+  border-color: #5a2d82;
+  min-width: 100px;
+}
+
+.liminal-interact-btn {
+  font-size: 0.9rem;
+  background: #5a2d82;
+  border-color: #7b3dad;
+}
+
+.liminal-interact-btn:hover {
+  background: #7b3dad;
+  border-color: #9a5ccc;
+}
+
+.liminal-facedown-in-play {
+  margin-bottom: 1.5rem;
+}
+
+.liminal-facedown-in-play h2 {
+  margin-bottom: 0.5rem;
+}
+
+.liminal-facedown-standalone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.liminal-facedown-standalone .card-facedown-peek {
+  margin-top: 0;
 }
 
 /* Hand during draw phase — anchored at bottom, read-only */
