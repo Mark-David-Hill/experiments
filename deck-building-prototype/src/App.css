@@ -33,6 +33,11 @@
   font-weight: 500;
 }
 
+.pile-actions {
+  color: #9a5ccc;
+  font-weight: 700;
+}
+
 .hint {
   color: #888;
   font-size: 1rem;
@@ -153,12 +158,82 @@ section h2 {
   margin-bottom: 1rem;
 }
 
+.center-row-actions {
+  margin-bottom: 0.75rem;
+}
+
+.move-card-btn {
+  font-size: 0.9rem;
+  background: #3d3a5c;
+  border-color: #5c5a7a;
+}
+
+.move-card-btn:hover:not(:disabled) {
+  background: #4d4a6c;
+  border-color: #6c6a8a;
+}
+
+.move-card-btn:disabled {
+  opacity: 0.6;
+}
+
+.move-card-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(90, 45, 130, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #c8c0e0;
+}
+
+.btn-cancel-move {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
 .center-columns {
   display: flex;
   gap: 1.5rem;
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
+}
+
+.center-column-clickable,
+.center-column-dest {
+  cursor: pointer;
+  outline: 2px dashed transparent;
+  border-radius: 8px;
+  transition: outline-color 0.2s, background 0.2s;
+}
+
+.center-column-clickable:hover {
+  outline-color: #9a5ccc;
+  background: rgba(90, 45, 130, 0.08);
+}
+
+.center-column-dest:hover {
+  outline: 2px solid #27ae60;
+  outline-offset: 2px;
+  background: rgba(39, 174, 96, 0.08);
+}
+
+.center-column-source {
+  outline: 2px solid #9a5ccc;
+  outline-offset: 2px;
+  background: rgba(90, 45, 130, 0.12);
+}
+
+.center-card-moveable {
+  cursor: pointer;
+}
+
+.center-card-moveable:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 0 2px #9a5ccc;
 }
 
 .center-column {

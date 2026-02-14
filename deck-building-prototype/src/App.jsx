@@ -13,6 +13,7 @@ import './App.css'
 
 const HAND_SIZE = 5
 const STARTING_ENERGY = 3
+const DRAW_ACTIONS_PER_TURN = 5
 
 function shuffle(array) {
   const a = [...array]
@@ -48,7 +49,9 @@ const initialGameState = () => ({
   centerColumns: [[], [], []],
   liminalDeck: [],
   liminalDrawnThisTurn: null,
-  liminalFacedownCard: null, // card placed facedown under center when 3 match; interacted with later
+  liminalFacedownCard: null,
+  drawActionsRemaining: 0,
+  moveSourceColumn: null, // when set, waiting to pick destination to move bottom card (costs 1 action)
 })
 
 function App() {
@@ -63,24 +66,37 @@ function App() {
     energy,
     centerDecks,
     centerColumns,
-    liminalDeck,
-    liminalDrawnThisTurn,
-    liminalFacedownCard,
+  liminalDeck,
+  liminalDrawnThisTurn,
+  liminalFacedownCard,
+  drawActionsRemaining,
+  moveSourceColumn,
   } = state
 
-  const canDrawFromLiminal =
+  const horizontalMatch =
     centerColumns[0]?.length > 0 &&
     centerColumns[1]?.length > 0 &&
     centerColumns[2]?.length > 0 &&
     centerColumns[0][0].color === centerColumns[1][0].color &&
     centerColumns[1][0].color === centerColumns[2][0].color
-  const topColor = centerColumns[0]?.[0]?.color
-  const alreadyDrewForThisCombo = topColor != null && liminalDrawnThisTurn === topColor
+  const verticalMatchColumn = [0, 1, 2].find(
+    (i) =>
+      (centerColumns[i]?.length ?? 0) >= 3 &&
+      centerColumns[i][0].color === centerColumns[i][1].color &&
+      centerColumns[i][1].color === centerColumns[i][2].color
+  )
+  const liminalMatchColor = horizontalMatch
+    ? centerColumns[0][0].color
+    : verticalMatchColumn !== undefined
+      ? centerColumns[verticalMatchColumn][0].color
+      : null
+  const canDrawFromLiminal = (horizontalMatch || verticalMatchColumn !== undefined) && liminalMatchColor != null
+  const alreadyDrewForThisCombo = liminalMatchColor != null && liminalDrawnThisTurn === liminalMatchColor
   const liminalUnlocked =
     canDrawFromLiminal &&
     liminalDeck.length > 0 &&
     !alreadyDrewForThisCombo &&
-    !liminalFacedownCard // only one facedown card at a time
+    !liminalFacedownCard
   const mustDrawFromLiminal = liminalUnlocked
 
   const startGame = useCallback(() => {
@@ -116,11 +132,14 @@ function App() {
       liminalDeck: liminalDeckInit,
       liminalDrawnThisTurn: null,
       liminalFacedownCard: null,
+      drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
+      moveSourceColumn: null,
     }))
   }, [])
 
   const drawFromCenter = useCallback((columnIndex) => {
     setState((s) => {
+      if (s.drawActionsRemaining <= 0) return s
       const decks = s.centerDecks[columnIndex]
       if (!decks.length) return s
       const [card, ...restDeck] = decks
@@ -130,25 +149,11 @@ function App() {
       const newCenterColumns = s.centerColumns.map((col, i) =>
         i === columnIndex ? [card, ...col] : col
       )
-
-      let playerSource = [...s.deck]
-      let newDiscard = [...s.discard]
-      if (playerSource.length < 1 && newDiscard.length > 0) {
-        playerSource = shuffle([...playerSource, ...newDiscard])
-        newDiscard = []
-      }
-      const playerDrawn =
-        playerSource.length > 0 ? playerSource.slice(0, 1) : []
-      const newDeck = playerSource.length > 0 ? playerSource.slice(1) : []
-      const newHand = [...s.hand, ...playerDrawn]
-
       return {
         ...s,
-        deck: newDeck,
-        hand: newHand,
-        discard: newDiscard,
         centerDecks: newCenterDecks,
         centerColumns: newCenterColumns,
+        drawActionsRemaining: s.drawActionsRemaining - 1,
       }
     })
   }, [])
@@ -156,16 +161,48 @@ function App() {
   const drawFromLiminal = useCallback(() => {
     setState((s) => {
       if (!s.liminalDeck.length || s.liminalFacedownCard) return s
-      const topColor =
-        s.centerColumns[0]?.[0]?.color ??
-        s.centerColumns[1]?.[0]?.color ??
-        s.centerColumns[2]?.[0]?.color
+      const hMatch =
+        s.centerColumns[0]?.length > 0 &&
+        s.centerColumns[1]?.length > 0 &&
+        s.centerColumns[2]?.length > 0 &&
+        s.centerColumns[0][0].color === s.centerColumns[1][0].color &&
+        s.centerColumns[1][0].color === s.centerColumns[2][0].color
+      const vCol = [0, 1, 2].find(
+        (i) =>
+          (s.centerColumns[i]?.length ?? 0) >= 3 &&
+          s.centerColumns[i][0].color === s.centerColumns[i][1].color &&
+          s.centerColumns[i][1].color === s.centerColumns[i][2].color
+      )
+      const matchColor = hMatch
+        ? s.centerColumns[0][0].color
+        : vCol !== undefined
+          ? s.centerColumns[vCol][0].color
+          : null
       const [card, ...rest] = s.liminalDeck
+      let threeMatching
+      let newCenterColumns
+      if (hMatch) {
+        threeMatching = [
+          s.centerColumns[0][0],
+          s.centerColumns[1][0],
+          s.centerColumns[2][0],
+        ]
+        newCenterColumns = s.centerColumns.map((col) => col.slice(1))
+      } else if (vCol !== undefined) {
+        threeMatching = s.centerColumns[vCol].slice(0, 3)
+        newCenterColumns = s.centerColumns.map((col, i) =>
+          i === vCol ? col.slice(3) : col
+        )
+      } else {
+        return s
+      }
       return {
         ...s,
         liminalDeck: rest,
         liminalFacedownCard: card,
-        liminalDrawnThisTurn: topColor ?? s.liminalDrawnThisTurn,
+        liminalDrawnThisTurn: matchColor ?? s.liminalDrawnThisTurn,
+        centerColumns: newCenterColumns,
+        discard: [...s.discard, ...threeMatching],
       }
     })
   }, [])
@@ -181,8 +218,56 @@ function App() {
     })
   }, [])
 
+  const startMoveCard = useCallback(() => {
+    setState((s) => ({ ...s, moveSourceColumn: 'pending' }))
+  }, [])
+
+  const selectMoveSourceFromCard = useCallback((columnIndex) => {
+    setState((s) => {
+      if (s.moveSourceColumn !== null && s.moveSourceColumn !== 'pending') return s
+      const col = s.centerColumns[columnIndex] || []
+      if (col.length === 0 || s.drawActionsRemaining <= 0) return s
+      return { ...s, moveSourceColumn: columnIndex }
+    })
+  }, [])
+
+  const cancelMoveCard = useCallback(() => {
+    setState((s) => ({ ...s, moveSourceColumn: null }))
+  }, [])
+
+  const selectMoveSourceOrDest = useCallback((columnIndex) => {
+    setState((s) => {
+      if (s.moveSourceColumn === 'pending') {
+        const col = s.centerColumns[columnIndex] || []
+        if (col.length === 0 || s.drawActionsRemaining <= 0) return s
+        return { ...s, moveSourceColumn: columnIndex }
+      }
+      if (typeof s.moveSourceColumn === 'number') {
+        if (s.moveSourceColumn === columnIndex) {
+          return { ...s, moveSourceColumn: null }
+        }
+        const src = s.moveSourceColumn
+        const srcCol = s.centerColumns[src] || []
+        if (srcCol.length === 0 || s.drawActionsRemaining <= 0) return s
+        const card = srcCol[srcCol.length - 1]
+        const newSourceCol = srcCol.slice(0, -1)
+        const destCol = s.centerColumns[columnIndex] || []
+        const newCenterColumns = s.centerColumns.map((col, i) =>
+          i === src ? newSourceCol : i === columnIndex ? [...destCol, card] : col
+        )
+        return {
+          ...s,
+          centerColumns: newCenterColumns,
+          drawActionsRemaining: s.drawActionsRemaining - 1,
+          moveSourceColumn: null,
+        }
+      }
+      return s
+    })
+  }, [])
+
   const doneDrawing = useCallback(() => {
-    setState((s) => ({ ...s, phase: 'play' }))
+    setState((s) => ({ ...s, phase: 'play', moveSourceColumn: null }))
   }, [])
 
   const playCard = useCallback((card) => {
@@ -197,17 +282,6 @@ function App() {
   const endTurn = useCallback(() => {
     setState((s) => {
       const newDiscard = [...s.discard, ...s.hand, ...s.played]
-      const returnColumnsToDecks = s.centerColumns.map((col, i) =>
-        shuffle([...(s.centerDecks[i] || []), ...col])
-      )
-      const newColumns = returnColumnsToDecks.map((d) => {
-        if (d.length === 0) return []
-        const [card, ...rest] = d
-        return [card]
-      })
-      const newCenterDecks = returnColumnsToDecks.map((d) =>
-        d.length > 0 ? d.slice(1) : []
-      )
       const { drawn, newDeck, newDiscard: afterDraw } = drawFromPlayerPile(
         s.deck,
         newDiscard,
@@ -221,11 +295,13 @@ function App() {
         discard: afterDraw,
         played: [],
         energy: STARTING_ENERGY,
-        centerDecks: newCenterDecks,
-        centerColumns: newColumns,
+        centerDecks: s.centerDecks,
+        centerColumns: s.centerColumns,
         liminalDeck: s.liminalDeck,
         liminalDrawnThisTurn: null,
         liminalFacedownCard: s.liminalFacedownCard,
+        drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
+        moveSourceColumn: null,
       }
     })
   }, [])
@@ -242,6 +318,9 @@ function App() {
       <header className="header">
         <h1>Deck-building prototype</h1>
         <div className="piles">
+          {gameStarted && phase === 'draw' && (
+            <span className="pile pile-actions">Actions: {drawActionsRemaining}</span>
+          )}
           <span className="pile">Deck: {deck.length}</span>
           <span className="pile">Discard: {discard.length}</span>
           <span className="pile">Hand: {hand.length}</span>
@@ -261,36 +340,93 @@ function App() {
       {gameStarted && phase === 'draw' && (
         <>
           <section className="center-decks">
-            <h2>Center row — draw more to add to a column and draw from your deck</h2>
+            <h2>Center row — spend 1 action to draw a card from a deck into its column ({drawActionsRemaining} actions left)</h2>
+            <div className="center-row-actions">
+              <button
+                type="button"
+                className="btn move-card-btn"
+                onClick={startMoveCard}
+                disabled={mustDrawFromLiminal || drawActionsRemaining <= 0 || !centerColumns.some((col) => (col || []).length > 0) || (moveSourceColumn === 'pending' || typeof moveSourceColumn === 'number')}
+                title="Pick a column, then pick a different column to move the bottom card (1 action)"
+              >
+                Move card (1 action)
+              </button>
+            </div>
             <div className="center-columns">
+              {(moveSourceColumn === 'pending' || typeof moveSourceColumn === 'number') && (
+                <div className="move-card-hint">
+                  {moveSourceColumn === 'pending'
+                    ? 'Click a column to move its bottom card from'
+                    : `Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
+                  <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
+                    Cancel
+                  </button>
+                </div>
+              )}
               {[0, 1, 2].map((i) => (
-                <div key={i} className={`center-column ${i === 1 ? 'center-column-middle' : ''}`}>
+                <div
+                  key={i}
+                  className={`center-column ${i === 1 ? 'center-column-middle' : ''} ${
+                    moveSourceColumn === 'pending' && (centerColumns[i] || []).length > 0
+                      ? 'center-column-clickable'
+                      : ''
+                  } ${typeof moveSourceColumn === 'number' && moveSourceColumn !== i ? 'center-column-dest' : ''} ${
+                    typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''
+                  }`}
+                  onClick={
+                    moveSourceColumn === 'pending' && (centerColumns[i] || []).length > 0
+                      ? () => selectMoveSourceOrDest(i)
+                      : typeof moveSourceColumn === 'number' && moveSourceColumn !== i
+                        ? () => selectMoveSourceOrDest(i)
+                        : undefined
+                  }
+                  role={moveSourceColumn === 'pending' || (typeof moveSourceColumn === 'number' && moveSourceColumn !== i) ? 'button' : undefined}
+                  tabIndex={moveSourceColumn === 'pending' || typeof moveSourceColumn === 'number' ? 0 : undefined}
+                >
                   <div className="center-column-label">
                     {CENTER_DECK_LABELS[i]} deck ({centerDecks[i]?.length ?? 0})
                   </div>
                   <button
                     type="button"
                     className="btn draw-center-btn"
-                    onClick={() => drawFromCenter(i)}
-                    disabled={!centerDecks[i]?.length || mustDrawFromLiminal}
-                    title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : 'Draw one from this deck (column grows) and one from your deck'}
+                    onClick={(e) => { e.stopPropagation(); drawFromCenter(i); }}
+                    disabled={!centerDecks[i]?.length || mustDrawFromLiminal || drawActionsRemaining <= 0}
+                    title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : drawActionsRemaining <= 0 ? 'No actions left' : '1 action: add a card from this deck to the column'}
                   >
-                    Draw from {CENTER_DECK_LABELS[i]}
+                    Draw from {CENTER_DECK_LABELS[i]} (1 action)
                   </button>
                   <div className="center-column-stack">
                     <div className="center-cards-column">
-                      {(centerColumns[i] || []).map((card) => (
-                        <div
-                          key={card.instanceId}
-                          className="card center-card"
-                          style={{
-                            background: CARD_COLORS[card.color] ?? '#444',
-                            color: getCardTextColor(card.color),
-                          }}
-                        >
-                          {card.name}
-                        </div>
-                      ))}
+                      {(centerColumns[i] || []).map((card, idx) => {
+                        const isBottom = idx === (centerColumns[i]?.length ?? 0) - 1
+                        const canSelectAsSource =
+                          (moveSourceColumn === null || moveSourceColumn === 'pending') &&
+                          drawActionsRemaining > 0 &&
+                          !mustDrawFromLiminal &&
+                          (centerColumns[i]?.length ?? 0) > 0
+                        return (
+                          <div
+                            key={card.instanceId}
+                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''}`}
+                            style={{
+                              background: CARD_COLORS[card.color] ?? '#444',
+                              color: getCardTextColor(card.color),
+                            }}
+                            onClick={
+                              isBottom && canSelectAsSource
+                                ? (e) => {
+                                    e.stopPropagation()
+                                    selectMoveSourceFromCard(i)
+                                  }
+                                : undefined
+                            }
+                            role={isBottom && canSelectAsSource ? 'button' : undefined}
+                            title={isBottom && canSelectAsSource ? 'Click to move this card (1 action)' : undefined}
+                          >
+                            {card.name}
+                          </div>
+                        )
+                      })}
                     </div>
                     {i === 1 && (
                       <div className="liminal-under-slot">
@@ -303,7 +439,7 @@ function App() {
                             <button
                               type="button"
                               className="btn liminal-interact-btn"
-                              onClick={interactWithLiminalFacedown}
+                              onClick={(e) => { e.stopPropagation(); interactWithLiminalFacedown(); }}
                               title="Interact with the facedown card (will lead to things later)"
                             >
                               Interact
@@ -322,7 +458,7 @@ function App() {
             <section className="liminal-deck">
               <h2>Liminal deck ({liminalDeck.length})</h2>
               <p className="liminal-hint">
-                When the top card of each center column is the same color (3 in a row), a card is drawn from the Liminal deck and placed facedown under the center (once per combo per turn). Interact with it later.
+                When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), a card is drawn from the Liminal deck and placed facedown under the center (once per color per turn). Interact with it later.
               </p>
               <button
                 type="button"
