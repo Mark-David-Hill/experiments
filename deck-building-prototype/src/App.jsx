@@ -48,11 +48,32 @@ const initialGameState = () => ({
   centerDecks: [[], [], []],
   centerColumns: [[], [], []],
   liminalDeck: [],
-  liminalDrawnThisTurn: null,
-  liminalFacedownCard: null,
   drawActionsRemaining: 0,
   moveSourceColumn: null, // when set, waiting to pick destination to move bottom card (costs 1 action)
+  pendingDiscardCenterCard: null, // when set, waiting to pick a center card to discard (ability played in draw phase)
 })
+
+/** Finds first 3-in-a-row (same color): any horizontal row, or any vertical run in a column. */
+function findFirstMatch(centerColumns) {
+  const cols = centerColumns || [[], [], []]
+  const minLen = Math.min(cols[0]?.length ?? 0, cols[1]?.length ?? 0, cols[2]?.length ?? 0)
+  for (let d = 0; d < minLen; d++) {
+    const c0 = cols[0][d].color
+    const c1 = cols[1][d].color
+    const c2 = cols[2][d].color
+    if (c0 === c1 && c1 === c2) return { type: 'horizontal', rowIndex: d }
+  }
+  for (let col = 0; col < 3; col++) {
+    const colArr = cols[col] || []
+    for (let start = 0; start + 3 <= colArr.length; start++) {
+      const c0 = colArr[start].color
+      const c1 = colArr[start + 1].color
+      const c2 = colArr[start + 2].color
+      if (c0 === c1 && c1 === c2) return { type: 'vertical', colIndex: col, startIndex: start }
+    }
+  }
+  return null
+}
 
 function App() {
   const [state, setState] = useState(initialGameState)
@@ -67,36 +88,20 @@ function App() {
     centerDecks,
     centerColumns,
   liminalDeck,
-  liminalDrawnThisTurn,
-  liminalFacedownCard,
   drawActionsRemaining,
   moveSourceColumn,
+  pendingDiscardCenterCard,
   } = state
 
-  const horizontalMatch =
-    centerColumns[0]?.length > 0 &&
-    centerColumns[1]?.length > 0 &&
-    centerColumns[2]?.length > 0 &&
-    centerColumns[0][0].color === centerColumns[1][0].color &&
-    centerColumns[1][0].color === centerColumns[2][0].color
-  const verticalMatchColumn = [0, 1, 2].find(
-    (i) =>
-      (centerColumns[i]?.length ?? 0) >= 3 &&
-      centerColumns[i][0].color === centerColumns[i][1].color &&
-      centerColumns[i][1].color === centerColumns[i][2].color
-  )
-  const liminalMatchColor = horizontalMatch
-    ? centerColumns[0][0].color
-    : verticalMatchColumn !== undefined
-      ? centerColumns[verticalMatchColumn][0].color
-      : null
-  const canDrawFromLiminal = (horizontalMatch || verticalMatchColumn !== undefined) && liminalMatchColor != null
-  const alreadyDrewForThisCombo = liminalMatchColor != null && liminalDrawnThisTurn === liminalMatchColor
-  const liminalUnlocked =
-    canDrawFromLiminal &&
-    liminalDeck.length > 0 &&
-    !alreadyDrewForThisCombo &&
-    !liminalFacedownCard
+  const liminalMatch = findFirstMatch(centerColumns)
+  const liminalMatchColor = liminalMatch
+    ? liminalMatch.type === 'horizontal'
+      ? centerColumns[0][liminalMatch.rowIndex].color
+      : centerColumns[liminalMatch.colIndex][liminalMatch.startIndex].color
+    : null
+  const canDrawFromLiminal = liminalMatch != null && liminalMatchColor != null
+  // Liminal draw never costs an action; you can draw multiple times per turn for the same color
+  const liminalUnlocked = canDrawFromLiminal && liminalDeck.length > 0
   const mustDrawFromLiminal = liminalUnlocked
 
   const startGame = useCallback(() => {
@@ -130,10 +135,9 @@ function App() {
       centerDecks: centerDecksAfterFirstDraw,
       centerColumns: newColumns,
       liminalDeck: liminalDeckInit,
-      liminalDrawnThisTurn: null,
-      liminalFacedownCard: null,
       drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
       moveSourceColumn: null,
+      pendingDiscardCenterCard: null,
     }))
   }, [])
 
@@ -160,71 +164,45 @@ function App() {
 
   const drawFromLiminal = useCallback(() => {
     setState((s) => {
-      if (!s.liminalDeck.length || s.liminalFacedownCard) return s
-      const hMatch =
-        s.centerColumns[0]?.length > 0 &&
-        s.centerColumns[1]?.length > 0 &&
-        s.centerColumns[2]?.length > 0 &&
-        s.centerColumns[0][0].color === s.centerColumns[1][0].color &&
-        s.centerColumns[1][0].color === s.centerColumns[2][0].color
-      const vCol = [0, 1, 2].find(
-        (i) =>
-          (s.centerColumns[i]?.length ?? 0) >= 3 &&
-          s.centerColumns[i][0].color === s.centerColumns[i][1].color &&
-          s.centerColumns[i][1].color === s.centerColumns[i][2].color
-      )
-      const matchColor = hMatch
-        ? s.centerColumns[0][0].color
-        : vCol !== undefined
-          ? s.centerColumns[vCol][0].color
-          : null
+      if (!s.liminalDeck.length) return s
+      const match = findFirstMatch(s.centerColumns)
+      if (!match) return s
       const [card, ...rest] = s.liminalDeck
       let threeMatching
       let newCenterColumns
-      if (hMatch) {
+      if (match.type === 'horizontal') {
+        const d = match.rowIndex
         threeMatching = [
-          s.centerColumns[0][0],
-          s.centerColumns[1][0],
-          s.centerColumns[2][0],
+          s.centerColumns[0][d],
+          s.centerColumns[1][d],
+          s.centerColumns[2][d],
         ]
-        newCenterColumns = s.centerColumns.map((col) => col.slice(1))
-      } else if (vCol !== undefined) {
-        threeMatching = s.centerColumns[vCol].slice(0, 3)
-        newCenterColumns = s.centerColumns.map((col, i) =>
-          i === vCol ? col.slice(3) : col
-        )
+        newCenterColumns = s.centerColumns.map((col) => [
+          ...col.slice(0, d),
+          ...col.slice(d + 1),
+        ])
       } else {
-        return s
+        const { colIndex, startIndex } = match
+        threeMatching = s.centerColumns[colIndex].slice(startIndex, startIndex + 3)
+        newCenterColumns = s.centerColumns.map((col, i) =>
+          i === colIndex
+            ? [...col.slice(0, startIndex), ...col.slice(startIndex + 3)]
+            : col
+        )
       }
       return {
         ...s,
         liminalDeck: rest,
-        liminalFacedownCard: card,
-        liminalDrawnThisTurn: matchColor ?? s.liminalDrawnThisTurn,
+        hand: [...s.hand, card],
         centerColumns: newCenterColumns,
         discard: [...s.discard, ...threeMatching],
       }
     })
   }, [])
 
-  const interactWithLiminalFacedown = useCallback(() => {
-    setState((s) => {
-      if (!s.liminalFacedownCard) return s
-      return {
-        ...s,
-        hand: [...s.hand, s.liminalFacedownCard],
-        liminalFacedownCard: null,
-      }
-    })
-  }, [])
-
-  const startMoveCard = useCallback(() => {
-    setState((s) => ({ ...s, moveSourceColumn: 'pending' }))
-  }, [])
-
   const selectMoveSourceFromCard = useCallback((columnIndex) => {
     setState((s) => {
-      if (s.moveSourceColumn !== null && s.moveSourceColumn !== 'pending') return s
+      if (s.moveSourceColumn !== null) return s
       const col = s.centerColumns[columnIndex] || []
       if (col.length === 0 || s.drawActionsRemaining <= 0) return s
       return { ...s, moveSourceColumn: columnIndex }
@@ -237,11 +215,6 @@ function App() {
 
   const selectMoveSourceOrDest = useCallback((columnIndex) => {
     setState((s) => {
-      if (s.moveSourceColumn === 'pending') {
-        const col = s.centerColumns[columnIndex] || []
-        if (col.length === 0 || s.drawActionsRemaining <= 0) return s
-        return { ...s, moveSourceColumn: columnIndex }
-      }
       if (typeof s.moveSourceColumn === 'number') {
         if (s.moveSourceColumn === columnIndex) {
           return { ...s, moveSourceColumn: null }
@@ -267,7 +240,44 @@ function App() {
   }, [])
 
   const doneDrawing = useCallback(() => {
-    setState((s) => ({ ...s, phase: 'play', moveSourceColumn: null }))
+    setState((s) => ({ ...s, phase: 'play', moveSourceColumn: null, pendingDiscardCenterCard: null }))
+  }, [])
+
+  const playDiscardCenterAbility = useCallback((card) => {
+    setState((s) => ({
+      ...s,
+      hand: s.hand.filter((c) => c.instanceId !== card.instanceId),
+      pendingDiscardCenterCard: card,
+    }))
+  }, [])
+
+  const discardCenterCard = useCallback((columnIndex, cardIndex) => {
+    setState((s) => {
+      if (!s.pendingDiscardCenterCard) return s
+      const col = s.centerColumns[columnIndex] || []
+      const card = col[cardIndex]
+      if (!card) return s
+      const newCenterColumns = s.centerColumns.map((c, i) =>
+        i === columnIndex ? [...c.slice(0, cardIndex), ...c.slice(cardIndex + 1)] : c
+      )
+      return {
+        ...s,
+        centerColumns: newCenterColumns,
+        discard: [...s.discard, card, s.pendingDiscardCenterCard],
+        pendingDiscardCenterCard: null,
+      }
+    })
+  }, [])
+
+  const cancelDiscardCenterTarget = useCallback(() => {
+    setState((s) => {
+      if (!s.pendingDiscardCenterCard) return s
+      return {
+        ...s,
+        hand: [...s.hand, s.pendingDiscardCenterCard],
+        pendingDiscardCenterCard: null,
+      }
+    })
   }, [])
 
   const playCard = useCallback((card) => {
@@ -298,8 +308,6 @@ function App() {
         centerDecks: s.centerDecks,
         centerColumns: s.centerColumns,
         liminalDeck: s.liminalDeck,
-        liminalDrawnThisTurn: null,
-        liminalFacedownCard: s.liminalFacedownCard,
         drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
         moveSourceColumn: null,
       }
@@ -341,23 +349,10 @@ function App() {
         <>
           <section className="center-decks">
             <h2>Center row — spend 1 action to draw a card from a deck into its column ({drawActionsRemaining} actions left)</h2>
-            <div className="center-row-actions">
-              <button
-                type="button"
-                className="btn move-card-btn"
-                onClick={startMoveCard}
-                disabled={mustDrawFromLiminal || drawActionsRemaining <= 0 || !centerColumns.some((col) => (col || []).length > 0) || (moveSourceColumn === 'pending' || typeof moveSourceColumn === 'number')}
-                title="Pick a column, then pick a different column to move the bottom card (1 action)"
-              >
-                Move card (1 action)
-              </button>
-            </div>
             <div className="center-columns">
-              {(moveSourceColumn === 'pending' || typeof moveSourceColumn === 'number') && (
+              {typeof moveSourceColumn === 'number' && (
                 <div className="move-card-hint">
-                  {moveSourceColumn === 'pending'
-                    ? 'Click a column to move its bottom card from'
-                    : `Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
+                  {`Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
                   <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
                     Cancel
                   </button>
@@ -367,21 +362,15 @@ function App() {
                 <div
                   key={i}
                   className={`center-column ${i === 1 ? 'center-column-middle' : ''} ${
-                    moveSourceColumn === 'pending' && (centerColumns[i] || []).length > 0
-                      ? 'center-column-clickable'
-                      : ''
-                  } ${typeof moveSourceColumn === 'number' && moveSourceColumn !== i ? 'center-column-dest' : ''} ${
-                    typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''
-                  }`}
+                    typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
+                  } ${typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''}`}
                   onClick={
-                    moveSourceColumn === 'pending' && (centerColumns[i] || []).length > 0
+                    !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i
                       ? () => selectMoveSourceOrDest(i)
-                      : typeof moveSourceColumn === 'number' && moveSourceColumn !== i
-                        ? () => selectMoveSourceOrDest(i)
-                        : undefined
+                      : undefined
                   }
-                  role={moveSourceColumn === 'pending' || (typeof moveSourceColumn === 'number' && moveSourceColumn !== i) ? 'button' : undefined}
-                  tabIndex={moveSourceColumn === 'pending' || typeof moveSourceColumn === 'number' ? 0 : undefined}
+                  role={!pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i ? 'button' : undefined}
+                  tabIndex={!pendingDiscardCenterCard && typeof moveSourceColumn === 'number' ? 0 : undefined}
                 >
                   <div className="center-column-label">
                     {CENTER_DECK_LABELS[i]} deck ({centerDecks[i]?.length ?? 0})
@@ -400,56 +389,41 @@ function App() {
                       {(centerColumns[i] || []).map((card, idx) => {
                         const isBottom = idx === (centerColumns[i]?.length ?? 0) - 1
                         const canSelectAsSource =
-                          (moveSourceColumn === null || moveSourceColumn === 'pending') &&
+                          moveSourceColumn === null &&
+                          !pendingDiscardCenterCard &&
                           drawActionsRemaining > 0 &&
                           !mustDrawFromLiminal &&
                           (centerColumns[i]?.length ?? 0) > 0
+                        const isDiscardTarget = !!pendingDiscardCenterCard
                         return (
                           <div
                             key={card.instanceId}
-                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''}`}
+                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''}`}
                             style={{
                               background: CARD_COLORS[card.color] ?? '#444',
                               color: getCardTextColor(card.color),
                             }}
                             onClick={
-                              isBottom && canSelectAsSource
+                              isDiscardTarget
                                 ? (e) => {
                                     e.stopPropagation()
-                                    selectMoveSourceFromCard(i)
+                                    discardCenterCard(i, idx)
                                   }
-                                : undefined
+                                : isBottom && canSelectAsSource
+                                  ? (e) => {
+                                      e.stopPropagation()
+                                      selectMoveSourceFromCard(i)
+                                    }
+                                  : undefined
                             }
-                            role={isBottom && canSelectAsSource ? 'button' : undefined}
-                            title={isBottom && canSelectAsSource ? 'Click to move this card (1 action)' : undefined}
+                            role={isDiscardTarget || (isBottom && canSelectAsSource) ? 'button' : undefined}
+                            title={isDiscardTarget ? 'Discard this card' : isBottom && canSelectAsSource ? 'Click to move this card (1 action)' : undefined}
                           >
                             {card.name}
                           </div>
                         )
                       })}
                     </div>
-                    {i === 1 && (
-                      <div className="liminal-under-slot">
-                        {liminalFacedownCard ? (
-                          <>
-                            <div
-                              className="card-facedown-peek"
-                              aria-label="Liminal card (facedown, under center card)"
-                            />
-                            <button
-                              type="button"
-                              className="btn liminal-interact-btn"
-                              onClick={(e) => { e.stopPropagation(); interactWithLiminalFacedown(); }}
-                              title="Interact with the facedown card (will lead to things later)"
-                            >
-                              Interact
-                            </button>
-                          </>
-                        ) : (
-                          <span className="liminal-slot-empty">3 match → card here</span>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -458,16 +432,16 @@ function App() {
             <section className="liminal-deck">
               <h2>Liminal deck ({liminalDeck.length})</h2>
               <p className="liminal-hint">
-                When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), a card is drawn from the Liminal deck and placed facedown under the center (once per color per turn). Interact with it later.
+                When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), draw 1 card from the Liminal deck into your hand. The 3 matching cards are discarded. You can draw multiple times per turn. Doesn’t cost an action.
               </p>
               <button
                 type="button"
                 className="btn liminal-btn"
                 onClick={drawFromLiminal}
                 disabled={!liminalUnlocked}
-                title={liminalUnlocked ? 'Place a spirit card facedown (required)' : alreadyDrewForThisCombo ? 'Already drew for this color combo' : liminalFacedownCard ? 'Interact with the facedown card first' : 'Match the top card color across all 3 columns'}
+                title={liminalUnlocked ? 'Draw 1 Liminal card into hand (required, no action)' : 'Match 3 same-color cards in a row or in one column'}
               >
-                Draw from Liminal
+                Draw from Liminal (no action)
               </button>
             </section>
 
@@ -489,23 +463,49 @@ function App() {
 
           <section className="hand hand-draw-phase">
             <h2>Your hand ({hand.length})</h2>
+            {pendingDiscardCenterCard && (
+              <div className="ability-target-hint">
+                <span>Click a card in the center to discard it.</span>
+                <button type="button" className="btn btn-cancel-move" onClick={cancelDiscardCenterTarget}>
+                  Cancel
+                </button>
+              </div>
+            )}
             <div className="card-row">
               {hand.length === 0 && (
                 <span className="placeholder">No cards in hand</span>
               )}
-              {hand.map((card) => (
-                <div
-                  key={card.instanceId}
-                  className="card in-hand display-only"
-                  style={{
-                    background: CARD_COLORS[card.color] ?? '#444',
-                    color: getCardTextColor(card.color),
-                  }}
-                >
-                  {card.name}
-                  {card.cost > 0 && <span className="cost">{card.cost}</span>}
-                </div>
-              ))}
+              {hand.map((card) => {
+                const canPlayAbility = card.ability === 'discard_center' && !pendingDiscardCenterCard
+                return canPlayAbility ? (
+                  <button
+                    key={card.instanceId}
+                    type="button"
+                    className="card in-hand card-with-ability"
+                    onClick={() => playDiscardCenterAbility(card)}
+                    style={{
+                      background: CARD_COLORS[card.color] ?? '#444',
+                      color: getCardTextColor(card.color),
+                    }}
+                    title={card.abilityText ?? 'Play during draw: discard 1 center card'}
+                  >
+                    {card.name}
+                    {card.abilityText && <span className="ability-text">{card.abilityText}</span>}
+                  </button>
+                ) : (
+                  <div
+                    key={card.instanceId}
+                    className="card in-hand display-only"
+                    style={{
+                      background: CARD_COLORS[card.color] ?? '#444',
+                      color: getCardTextColor(card.color),
+                    }}
+                  >
+                    {card.name}
+                    {card.cost > 0 && <span className="cost">{card.cost}</span>}
+                  </div>
+                )
+              })}
             </div>
           </section>
         </>
@@ -513,22 +513,6 @@ function App() {
 
       {gameStarted && phase === 'play' && (
         <>
-          {liminalFacedownCard && (
-            <section className="liminal-facedown-in-play">
-              <h2>Facedown Liminal card</h2>
-              <div className="liminal-facedown-standalone">
-                <div className="card-facedown-peek" aria-label="Liminal card (facedown)" />
-                <button
-                  type="button"
-                  className="btn liminal-interact-btn"
-                  onClick={interactWithLiminalFacedown}
-                  title="Interact with the facedown card (will lead to things later)"
-                >
-                  Interact
-                </button>
-              </div>
-            </section>
-          )}
           <section className="play-area">
             <h2>Played this turn</h2>
             <div className="card-row">

@@ -66,8 +66,9 @@ export const CENTER_DECK_LABELS = ['Left', 'Center', 'Right']
 
 // Liminal deck — draw only when the top card of each center column is the same color (3 in a row).
 // Spirit/youkai themed; causes fantastical interactions with regular cards.
+// ability: 'discard_center' = play during draw phase to discard any 1 card in the center row
 export const LIMINAL_DECK_DEFS = [
-  { id: 'lim-kitsune', name: 'Kitsune', cost: 0, color: 'gold' },
+  { id: 'lim-kitsune', name: 'Kitsune', cost: 0, color: 'gold', ability: 'discard_center', abilityText: 'Discard 1 card from center' },
   { id: 'lim-tengu', name: 'Tengu', cost: 0, color: 'black' },
   { id: 'lim-kappa', name: 'Kappa', cost: 0, color: 'darkBlue' },
   { id: 'lim-yuki', name: 'Yuki-onna', cost: 0, color: 'white' },

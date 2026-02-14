@@ -158,25 +158,6 @@ section h2 {
   margin-bottom: 1rem;
 }
 
-.center-row-actions {
-  margin-bottom: 0.75rem;
-}
-
-.move-card-btn {
-  font-size: 0.9rem;
-  background: #3d3a5c;
-  border-color: #5c5a7a;
-}
-
-.move-card-btn:hover:not(:disabled) {
-  background: #4d4a6c;
-  border-color: #6c6a8a;
-}
-
-.move-card-btn:disabled {
-  opacity: 0.6;
-}
-
 .move-card-hint {
   display: flex;
   align-items: center;
@@ -234,6 +215,31 @@ section h2 {
 .center-card-moveable:hover {
   filter: brightness(1.1);
   box-shadow: 0 0 0 2px #9a5ccc;
+}
+
+.ability-target-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #c9a227;
+}
+
+.card-with-ability .ability-text {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  opacity: 0.95;
+}
+
+.center-card-discard-target {
+  cursor: pointer;
+}
+
+.center-card-discard-target:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 0 2px #c9a227;
 }
 
 .center-column {
