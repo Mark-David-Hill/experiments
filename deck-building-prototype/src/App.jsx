@@ -15,6 +15,9 @@ const HAND_SIZE = 5
 const STARTING_ENERGY = 3
 const DRAW_ACTIONS_PER_TURN = 5
 
+// Bonus when the yōkai drawn from Liminal matches the color of the 3 spirits used to open it.
+const LIMINAL_COLOR_MATCH_BONUS = 'token' // grant 1 token of that color
+
 function shuffle(array) {
   const a = [...array]
   for (let i = a.length - 1; i > 0; i--) {
@@ -51,6 +54,9 @@ const initialGameState = () => ({
   drawActionsRemaining: 0,
   moveSourceColumn: null, // when set, waiting to pick destination to move bottom card (costs 1 action)
   pendingDiscardCenterCard: null, // when set, waiting to pick a center card to discard (ability played in draw phase)
+  handCardToPlace: null, // when set, waiting to pick a column to place this hand card at the bottom (costs 1 action)
+  liminalColorMatchThisDraw: false, // true when last Liminal draw was same color as match (shows bonus message)
+  tokens: {}, // color -> count (from Liminal color-match bonus)
 })
 
 /** Finds first 3-in-a-row (same color): any horizontal row, or any vertical run in a column. */
@@ -91,6 +97,9 @@ function App() {
   drawActionsRemaining,
   moveSourceColumn,
   pendingDiscardCenterCard,
+  handCardToPlace,
+  liminalColorMatchThisDraw,
+  tokens,
   } = state
 
   const liminalMatch = findFirstMatch(centerColumns)
@@ -138,6 +147,9 @@ function App() {
       drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
       moveSourceColumn: null,
       pendingDiscardCenterCard: null,
+      handCardToPlace: null,
+      liminalColorMatchThisDraw: false,
+      tokens: {},
     }))
   }, [])
 
@@ -190,12 +202,22 @@ function App() {
             : col
         )
       }
+      const matchColor = threeMatching[0].color
+      const colorMatch = matchColor === card.color
+
+      const newTokens =
+        colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token'
+          ? { ...s.tokens, [matchColor]: (s.tokens[matchColor] ?? 0) + 1 }
+          : s.tokens
+
       return {
         ...s,
         liminalDeck: rest,
         hand: [...s.hand, card],
         centerColumns: newCenterColumns,
         discard: [...s.discard, ...threeMatching],
+        liminalColorMatchThisDraw: colorMatch,
+        tokens: newTokens,
       }
     })
   }, [])
@@ -240,7 +262,53 @@ function App() {
   }, [])
 
   const doneDrawing = useCallback(() => {
-    setState((s) => ({ ...s, phase: 'play', moveSourceColumn: null, pendingDiscardCenterCard: null }))
+    setState((s) => ({
+      ...s,
+      phase: 'play',
+      moveSourceColumn: null,
+      pendingDiscardCenterCard: null,
+      handCardToPlace: null,
+      liminalColorMatchThisDraw: false,
+    }))
+  }, [])
+
+  const selectHandCardToPlace = useCallback((card) => {
+    setState((s) => {
+      if (s.handCardToPlace || s.pendingDiscardCenterCard || typeof s.moveSourceColumn === 'number') return s
+      if (s.drawActionsRemaining <= 0) return s
+      const match = findFirstMatch(s.centerColumns)
+      const mustDraw = match != null && s.liminalDeck.length > 0
+      if (mustDraw) return s
+      return {
+        ...s,
+        hand: s.hand.filter((c) => c.instanceId !== card.instanceId),
+        handCardToPlace: card,
+      }
+    })
+  }, [])
+
+  const placeHandCardOnColumn = useCallback((columnIndex) => {
+    setState((s) => {
+      if (!s.handCardToPlace || s.drawActionsRemaining <= 0) return s
+      const col = s.centerColumns[columnIndex] || []
+      return {
+        ...s,
+        centerColumns: s.centerColumns.map((c, i) => (i === columnIndex ? [...c, s.handCardToPlace] : c)),
+        handCardToPlace: null,
+        drawActionsRemaining: s.drawActionsRemaining - 1,
+      }
+    })
+  }, [])
+
+  const cancelPlaceHandCard = useCallback(() => {
+    setState((s) => {
+      if (!s.handCardToPlace) return s
+      return {
+        ...s,
+        hand: [...s.hand, s.handCardToPlace],
+        handCardToPlace: null,
+      }
+    })
   }, [])
 
   const playDiscardCenterAbility = useCallback((card) => {
@@ -333,6 +401,26 @@ function App() {
           <span className="pile">Discard: {discard.length}</span>
           <span className="pile">Hand: {hand.length}</span>
           <span className="pile">Energy: {energy}</span>
+          {gameStarted && Object.keys(tokens).length > 0 && (
+            <span className="pile pile-tokens">
+              Tokens:{' '}
+              {Object.entries(tokens)
+                .filter(([, n]) => n > 0)
+                .map(([color, n]) => (
+                  <span
+                    key={color}
+                    className="token-badge"
+                    style={{
+                      background: CARD_COLORS[color] ?? '#555',
+                      color: getCardTextColor(color),
+                    }}
+                    title={`${color} token${n !== 1 ? 's' : ''}`}
+                  >
+                    {n}× {color}
+                  </span>
+                ))}
+            </span>
+          )}
         </div>
         <button type="button" className="btn btn-primary" onClick={startGame}>
           {gameStarted ? 'New game' : 'Start game'}
@@ -349,28 +437,38 @@ function App() {
         <>
           <section className="center-decks">
             <h2>Center row — spend 1 action to draw a card from a deck into its column ({drawActionsRemaining} actions left)</h2>
+            {typeof moveSourceColumn === 'number' && (
+              <div className="move-card-hint">
+                {`Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
+                <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
+                  Cancel
+                </button>
+              </div>
+            )}
+            {handCardToPlace && (
+              <div className="move-card-hint">
+                Place card at bottom of a column (1 action)
+                <button type="button" className="btn btn-cancel-move" onClick={cancelPlaceHandCard}>
+                  Cancel
+                </button>
+              </div>
+            )}
             <div className="center-columns">
-              {typeof moveSourceColumn === 'number' && (
-                <div className="move-card-hint">
-                  {`Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
-                  <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
-                    Cancel
-                  </button>
-                </div>
-              )}
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
                   className={`center-column ${i === 1 ? 'center-column-middle' : ''} ${
-                    typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
+                    handCardToPlace ? 'center-column-dest' : typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
                   } ${typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''}`}
                   onClick={
-                    !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i
-                      ? () => selectMoveSourceOrDest(i)
-                      : undefined
+                    handCardToPlace
+                      ? (e) => { e.stopPropagation(); placeHandCardOnColumn(i); }
+                      : !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i
+                        ? () => selectMoveSourceOrDest(i)
+                        : undefined
                   }
-                  role={!pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i ? 'button' : undefined}
-                  tabIndex={!pendingDiscardCenterCard && typeof moveSourceColumn === 'number' ? 0 : undefined}
+                  role={handCardToPlace || (!pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i) ? 'button' : undefined}
+                  tabIndex={handCardToPlace || (!pendingDiscardCenterCard && typeof moveSourceColumn === 'number') ? 0 : undefined}
                 >
                   <div className="center-column-label">
                     {CENTER_DECK_LABELS[i]} deck ({centerDecks[i]?.length ?? 0})
@@ -382,7 +480,7 @@ function App() {
                     disabled={!centerDecks[i]?.length || mustDrawFromLiminal || drawActionsRemaining <= 0}
                     title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : drawActionsRemaining <= 0 ? 'No actions left' : '1 action: add a card from this deck to the column'}
                   >
-                    Draw from {CENTER_DECK_LABELS[i]} (1 action)
+                    Draw from {CENTER_DECK_LABELS[i]}
                   </button>
                   <div className="center-column-stack">
                     <div className="center-cards-column">
@@ -434,6 +532,11 @@ function App() {
               <p className="liminal-hint">
                 When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), draw 1 card from the Liminal deck into your hand. The 3 matching cards are discarded. You can draw multiple times per turn. Doesn’t cost an action.
               </p>
+              {liminalColorMatchThisDraw && (
+                <p className="liminal-color-match-bonus" role="status">
+                  Color match! Gained 1 token of that color.
+                </p>
+              )}
               <button
                 type="button"
                 className="btn liminal-btn"
@@ -472,27 +575,53 @@ function App() {
               </div>
             )}
             <div className="card-row">
-              {hand.length === 0 && (
+              {hand.length === 0 && !handCardToPlace && (
                 <span className="placeholder">No cards in hand</span>
               )}
               {hand.map((card) => {
                 const canPlayAbility = card.ability === 'discard_center' && !pendingDiscardCenterCard
-                return canPlayAbility ? (
-                  <button
-                    key={card.instanceId}
-                    type="button"
-                    className="card in-hand card-with-ability"
-                    onClick={() => playDiscardCenterAbility(card)}
-                    style={{
-                      background: CARD_COLORS[card.color] ?? '#444',
-                      color: getCardTextColor(card.color),
-                    }}
-                    title={card.abilityText ?? 'Play during draw: discard 1 center card'}
-                  >
-                    {card.name}
-                    {card.abilityText && <span className="ability-text">{card.abilityText}</span>}
-                  </button>
-                ) : (
+                const canPlaceOnColumn =
+                  !handCardToPlace &&
+                  !pendingDiscardCenterCard &&
+                  drawActionsRemaining > 0 &&
+                  !mustDrawFromLiminal
+                if (canPlayAbility) {
+                  return (
+                    <button
+                      key={card.instanceId}
+                      type="button"
+                      className="card in-hand card-with-ability"
+                      onClick={() => playDiscardCenterAbility(card)}
+                      style={{
+                        background: CARD_COLORS[card.color] ?? '#444',
+                        color: getCardTextColor(card.color),
+                      }}
+                      title={card.abilityText ?? 'Play during draw: discard 1 center card'}
+                    >
+                      {card.name}
+                      {card.abilityText && <span className="ability-text">{card.abilityText}</span>}
+                    </button>
+                  )
+                }
+                if (canPlaceOnColumn) {
+                  return (
+                    <button
+                      key={card.instanceId}
+                      type="button"
+                      className="card in-hand"
+                      onClick={() => selectHandCardToPlace(card)}
+                      style={{
+                        background: CARD_COLORS[card.color] ?? '#444',
+                        color: getCardTextColor(card.color),
+                      }}
+                      title="Place at bottom of a column (1 action)"
+                    >
+                      {card.name}
+                      {card.cost > 0 && <span className="cost">{card.cost}</span>}
+                    </button>
+                  )
+                }
+                return (
                   <div
                     key={card.instanceId}
                     className="card in-hand display-only"

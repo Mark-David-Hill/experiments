@@ -38,6 +38,22 @@
   font-weight: 700;
 }
 
+.pile-tokens {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.token-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .hint {
   color: #888;
   font-size: 1rem;
@@ -159,20 +175,20 @@ section h2 {
 }
 
 .move-card-hint {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
   background: rgba(90, 45, 130, 0.2);
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   color: #c8c0e0;
 }
 
 .btn-cancel-move {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
 }
 
 .center-columns {
@@ -384,6 +400,13 @@ section h2 {
   color: #b8b8d0;
   margin: 0 0 0.75rem 0;
   max-width: 480px;
+}
+
+.liminal-color-match-bonus {
+  font-size: 0.9rem;
+  color: #c9a227;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
 }
 
 .liminal-btn {

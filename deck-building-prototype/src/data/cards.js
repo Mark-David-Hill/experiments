@@ -37,28 +37,29 @@ export const MARKET_CARDS = [
   { id: 'm5', name: '13', cost: 3, color: 'red' },
 ]
 
-// Three center decks — one card is drawn from each at start of turn; player can push to draw more.
+// Three center decks — nature spirits drawn to the threshold. When three align, yōkai may cross.
+// Color = spirit type: red=flame, darkBlue=water, gold=earth/harvest, violet=twilight, black=shadow, white=wind
 export const CENTER_DECK_DEFS = [
   [
-    { id: 'c1-a', name: '14', cost: 0, color: 'red' },
-    { id: 'c1-b', name: '15', cost: 0, color: 'darkBlue' },
-    { id: 'c1-c', name: '16', cost: 0, color: 'gold' },
-    { id: 'c1-d', name: '17', cost: 0, color: 'violet' },
-    { id: 'c1-e', name: '18', cost: 0, color: 'black' },
+    { id: 'c1-a', name: 'Ember', cost: 0, color: 'red' },
+    { id: 'c1-b', name: 'Ripple', cost: 0, color: 'darkBlue' },
+    { id: 'c1-c', name: 'Grain', cost: 0, color: 'gold' },
+    { id: 'c1-d', name: 'Dusk', cost: 0, color: 'violet' },
+    { id: 'c1-e', name: 'Shadow', cost: 0, color: 'black' },
   ],
   [
-    { id: 'c2-a', name: '19', cost: 0, color: 'white' },
-    { id: 'c2-b', name: '20', cost: 0, color: 'violet' },
-    { id: 'c2-c', name: '21', cost: 0, color: 'red' },
-    { id: 'c2-d', name: '22', cost: 0, color: 'darkBlue' },
-    { id: 'c2-e', name: '23', cost: 0, color: 'gold' },
+    { id: 'c2-a', name: 'Breeze', cost: 0, color: 'white' },
+    { id: 'c2-b', name: 'Veil', cost: 0, color: 'violet' },
+    { id: 'c2-c', name: 'Cinder', cost: 0, color: 'red' },
+    { id: 'c2-d', name: 'Stream', cost: 0, color: 'darkBlue' },
+    { id: 'c2-e', name: 'Amber', cost: 0, color: 'gold' },
   ],
   [
-    { id: 'c3-a', name: '24', cost: 0, color: 'black' },
-    { id: 'c3-b', name: '25', cost: 0, color: 'gold' },
-    { id: 'c3-c', name: '26', cost: 0, color: 'white' },
-    { id: 'c3-d', name: '27', cost: 0, color: 'violet' },
-    { id: 'c3-e', name: '28', cost: 0, color: 'red' },
+    { id: 'c3-a', name: 'Umbra', cost: 0, color: 'black' },
+    { id: 'c3-b', name: 'Harvest', cost: 0, color: 'gold' },
+    { id: 'c3-c', name: 'Frost', cost: 0, color: 'white' },
+    { id: 'c3-d', name: 'Twilight', cost: 0, color: 'violet' },
+    { id: 'c3-e', name: 'Blaze', cost: 0, color: 'red' },
   ],
 ]
 
