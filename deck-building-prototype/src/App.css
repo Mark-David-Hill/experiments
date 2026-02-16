@@ -38,6 +38,23 @@
   font-weight: 700;
 }
 
+.pile-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.area-color-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 4rem;
+}
+
 .pile-tokens {
   display: inline-flex;
   align-items: center;
@@ -488,4 +505,42 @@ section h2 {
   transform: none;
   box-shadow: none;
   border-color: #444;
+}
+
+/* Bonus modal */
+.bonus-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.bonus-modal {
+  background: linear-gradient(145deg, #2d3a5c 0%, #1e2a4a 100%);
+  border: 2px solid #5a2d82;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.bonus-modal-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+  color: #c9a227;
+}
+
+.bonus-modal-message {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: #e0e8ff;
+  line-height: 1.4;
+}
+
+.bonus-modal .btn {
+  width: 100%;
 }

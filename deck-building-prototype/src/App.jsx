@@ -6,6 +6,8 @@ import {
   CENTER_DECK_LABELS,
   LIMINAL_DECK_DEFS,
   CARD_COLORS,
+  CARD_COLOR_KEYS,
+  AREA_COLOR_LABELS,
   getCardTextColor,
   createCardInstance,
 } from './data/cards'
@@ -56,7 +58,9 @@ const initialGameState = () => ({
   pendingDiscardCenterCard: null, // when set, waiting to pick a center card to discard (ability played in draw phase)
   handCardToPlace: null, // when set, waiting to pick a column to place this hand card at the bottom (costs 1 action)
   liminalColorMatchThisDraw: false, // true when last Liminal draw was same color as match (shows bonus message)
+  areaColor: null, // innate color of current area (random at game start); match this color for bonus token
   tokens: {}, // color -> count (from Liminal color-match bonus)
+  bonusModal: null, // { title, message } when set, show modal until dismissed
 })
 
 /** Finds first 3-in-a-row (same color): any horizontal row, or any vertical run in a column. */
@@ -99,7 +103,9 @@ function App() {
   pendingDiscardCenterCard,
   handCardToPlace,
   liminalColorMatchThisDraw,
+  areaColor,
   tokens,
+  bonusModal,
   } = state
 
   const liminalMatch = findFirstMatch(centerColumns)
@@ -131,10 +137,13 @@ function App() {
     const liminalDeckInit = shuffle(
       LIMINAL_DECK_DEFS.map((c) => createCardInstance(c))
     )
+    const areaColor =
+      CARD_COLOR_KEYS[Math.floor(Math.random() * CARD_COLOR_KEYS.length)]
 
     setState((s) => ({
       ...s,
       gameStarted: true,
+      areaColor,
       phase: 'draw',
       deck: newDeck,
       hand: drawn,
@@ -204,11 +213,31 @@ function App() {
       }
       const matchColor = threeMatching[0].color
       const colorMatch = matchColor === card.color
+      const areaMatch = matchColor === s.areaColor
 
-      const newTokens =
-        colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token'
-          ? { ...s.tokens, [matchColor]: (s.tokens[matchColor] ?? 0) + 1 }
-          : s.tokens
+      let newTokens = { ...s.tokens }
+      if (colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token') {
+        newTokens = { ...newTokens, [matchColor]: (newTokens[matchColor] ?? 0) + 1 }
+      }
+      if (areaMatch) {
+        newTokens = { ...newTokens, [matchColor]: (newTokens[matchColor] ?? 0) + 1 }
+      }
+
+      let bonusModal = null
+      if (colorMatch || areaMatch) {
+        const parts = []
+        if (colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token') {
+          parts.push('Yōkai matched the spirits')
+        }
+        if (areaMatch) {
+          parts.push('Match matched the area')
+        }
+        const tokenCount = (colorMatch ? 1 : 0) + (areaMatch ? 1 : 0)
+        bonusModal = {
+          title: 'Bonus!',
+          message: `${parts.join(' and ')} — +${tokenCount} token${tokenCount !== 1 ? 's' : ''} (${matchColor}).`,
+        }
+      }
 
       return {
         ...s,
@@ -216,8 +245,9 @@ function App() {
         hand: [...s.hand, card],
         centerColumns: newCenterColumns,
         discard: [...s.discard, ...threeMatching],
-        liminalColorMatchThisDraw: colorMatch,
+        liminalColorMatchThisDraw: colorMatch || areaMatch,
         tokens: newTokens,
+        bonusModal,
       }
     })
   }, [])
@@ -311,6 +341,10 @@ function App() {
     })
   }, [])
 
+  const dismissBonusModal = useCallback(() => {
+    setState((s) => (s.bonusModal ? { ...s, bonusModal: null } : s))
+  }, [])
+
   const playDiscardCenterAbility = useCallback((card) => {
     setState((s) => ({
       ...s,
@@ -401,6 +435,20 @@ function App() {
           <span className="pile">Discard: {discard.length}</span>
           <span className="pile">Hand: {hand.length}</span>
           <span className="pile">Energy: {energy}</span>
+          {gameStarted && areaColor && (
+            <span className="pile pile-area" title="Match this color for a bonus token">
+              Area:{' '}
+              <span
+                className="area-color-card"
+                style={{
+                  background: CARD_COLORS[areaColor] ?? '#555',
+                  color: getCardTextColor(areaColor),
+                }}
+              >
+                {AREA_COLOR_LABELS[areaColor] ?? areaColor}
+              </span>
+            </span>
+          )}
           {gameStarted && Object.keys(tokens).length > 0 && (
             <span className="pile pile-tokens">
               Tokens:{' '}
@@ -534,7 +582,7 @@ function App() {
               </p>
               {liminalColorMatchThisDraw && (
                 <p className="liminal-color-match-bonus" role="status">
-                  Color match! Gained 1 token of that color.
+                  Color match! Gained token(s) — yōkai matched spirits and/or match matched area.
                 </p>
               )}
               <button
@@ -708,6 +756,33 @@ function App() {
             </div>
           </section>
         </>
+      )}
+
+      {bonusModal && (
+        <div
+          className="bonus-modal-overlay"
+          onClick={dismissBonusModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bonus-modal-title"
+        >
+          <div
+            className="bonus-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="bonus-modal-title" className="bonus-modal-title">
+              {bonusModal.title}
+            </h2>
+            <p className="bonus-modal-message">{bonusModal.message}</p>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={dismissBonusModal}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

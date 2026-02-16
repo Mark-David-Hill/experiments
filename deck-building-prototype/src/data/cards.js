@@ -10,6 +10,19 @@ export const CARD_COLORS = {
   violet: '#5a2d82',
 }
 
+/** Color keys for random area / spirit types */
+export const CARD_COLOR_KEYS = Object.keys(CARD_COLORS)
+
+/** Display names for area innate color (nature spirit theme) */
+export const AREA_COLOR_LABELS = {
+  black: 'Shadow',
+  white: 'Wind',
+  red: 'Flame',
+  darkBlue: 'Water',
+  gold: 'Earth',
+  violet: 'Twilight',
+}
+
 /** Use dark text for these backgrounds so it's readable */
 const LIGHT_BG = new Set(['white', 'gold'])
 
