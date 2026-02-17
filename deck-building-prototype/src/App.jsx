@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import {
   STARTER_CARDS,
-  MARKET_CARDS,
   CENTER_DECK_DEFS,
   CENTER_DECK_LABELS,
   LIMINAL_DECK_DEFS,
@@ -61,6 +60,7 @@ const initialGameState = () => ({
   areaColor: null, // innate color of current area (random at game start); match this color for bonus token
   tokens: {}, // color -> count (from Liminal color-match bonus)
   bonusModal: null, // { title, message } when set, show modal until dismissed
+  playedModalOpen: false, // when true, show modal listing cards played this turn
 })
 
 /** Finds first 3-in-a-row (same color): any horizontal row, or any vertical run in a column. */
@@ -106,6 +106,7 @@ function App() {
   areaColor,
   tokens,
   bonusModal,
+  playedModalOpen,
   } = state
 
   const liminalMatch = findFirstMatch(centerColumns)
@@ -159,6 +160,7 @@ function App() {
       handCardToPlace: null,
       liminalColorMatchThisDraw: false,
       tokens: {},
+      playedModalOpen: false,
     }))
   }, [])
 
@@ -345,6 +347,14 @@ function App() {
     setState((s) => (s.bonusModal ? { ...s, bonusModal: null } : s))
   }, [])
 
+  const openPlayedModal = useCallback(() => {
+    setState((s) => ({ ...s, playedModalOpen: true }))
+  }, [])
+
+  const dismissPlayedModal = useCallback(() => {
+    setState((s) => ({ ...s, playedModalOpen: false }))
+  }, [])
+
   const playDiscardCenterAbility = useCallback((card) => {
     setState((s) => ({
       ...s,
@@ -416,13 +426,6 @@ function App() {
     })
   }, [])
 
-  const acquire = useCallback((card) => {
-    setState((s) => ({
-      ...s,
-      discard: [...s.discard, createCardInstance(card)],
-    }))
-  }, [])
-
   return (
     <div className="app">
       <header className="header">
@@ -481,11 +484,15 @@ function App() {
         </p>
       )}
 
-      {gameStarted && phase === 'draw' && (
+      {gameStarted && (
         <>
           <section className="center-decks">
-            <h2>Center row — spend 1 action to draw a card from a deck into its column ({drawActionsRemaining} actions left)</h2>
-            {typeof moveSourceColumn === 'number' && (
+            <h2 className={phase === 'play' ? 'center-decks-play-h2' : ''}>
+              {phase === 'draw'
+                ? `Center row — spend 1 action to draw a card from a deck into its column (${drawActionsRemaining} actions left)`
+                : 'Center row'}
+            </h2>
+            {phase === 'draw' && typeof moveSourceColumn === 'number' && (
               <div className="move-card-hint">
                 {`Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
                 <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
@@ -493,7 +500,7 @@ function App() {
                 </button>
               </div>
             )}
-            {handCardToPlace && (
+            {phase === 'draw' && handCardToPlace && (
               <div className="move-card-hint">
                 Place card at bottom of a column (1 action)
                 <button type="button" className="btn btn-cancel-move" onClick={cancelPlaceHandCard}>
@@ -501,46 +508,51 @@ function App() {
                 </button>
               </div>
             )}
-            <div className="center-columns">
+            <div
+              className={`center-columns ${phase === 'play' ? 'center-columns-readonly' : ''}`}
+            >
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
                   className={`center-column ${i === 1 ? 'center-column-middle' : ''} ${
-                    handCardToPlace ? 'center-column-dest' : typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
-                  } ${typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''}`}
+                    phase === 'draw' && handCardToPlace ? 'center-column-dest' : phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
+                  } ${phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''}`}
                   onClick={
-                    handCardToPlace
+                    phase === 'draw' && handCardToPlace
                       ? (e) => { e.stopPropagation(); placeHandCardOnColumn(i); }
-                      : !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i
+                      : phase === 'draw' && !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i
                         ? () => selectMoveSourceOrDest(i)
                         : undefined
                   }
-                  role={handCardToPlace || (!pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i) ? 'button' : undefined}
-                  tabIndex={handCardToPlace || (!pendingDiscardCenterCard && typeof moveSourceColumn === 'number') ? 0 : undefined}
+                  role={phase === 'draw' && (handCardToPlace || (typeof moveSourceColumn === 'number' && moveSourceColumn !== i)) ? 'button' : undefined}
+                  tabIndex={phase === 'draw' && typeof moveSourceColumn === 'number' ? 0 : undefined}
                 >
                   <div className="center-column-label">
                     {CENTER_DECK_LABELS[i]} deck ({centerDecks[i]?.length ?? 0})
                   </div>
-                  <button
-                    type="button"
-                    className="btn draw-center-btn"
-                    onClick={(e) => { e.stopPropagation(); drawFromCenter(i); }}
-                    disabled={!centerDecks[i]?.length || mustDrawFromLiminal || drawActionsRemaining <= 0}
-                    title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : drawActionsRemaining <= 0 ? 'No actions left' : '1 action: add a card from this deck to the column'}
-                  >
-                    Draw from {CENTER_DECK_LABELS[i]}
-                  </button>
+                  {phase === 'draw' && (
+                    <button
+                      type="button"
+                      className="btn draw-center-btn"
+                      onClick={(e) => { e.stopPropagation(); drawFromCenter(i); }}
+                      disabled={!centerDecks[i]?.length || mustDrawFromLiminal || drawActionsRemaining <= 0}
+                      title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : drawActionsRemaining <= 0 ? 'No actions left' : '1 action: add a card from this deck to the column'}
+                    >
+                      Draw from {CENTER_DECK_LABELS[i]}
+                    </button>
+                  )}
                   <div className="center-column-stack">
                     <div className="center-cards-column">
                       {(centerColumns[i] || []).map((card, idx) => {
                         const isBottom = idx === (centerColumns[i]?.length ?? 0) - 1
                         const canSelectAsSource =
+                          phase === 'draw' &&
                           moveSourceColumn === null &&
                           !pendingDiscardCenterCard &&
                           drawActionsRemaining > 0 &&
                           !mustDrawFromLiminal &&
                           (centerColumns[i]?.length ?? 0) > 0
-                        const isDiscardTarget = !!pendingDiscardCenterCard
+                        const isDiscardTarget = phase === 'draw' && !!pendingDiscardCenterCard
                         return (
                           <div
                             key={card.instanceId}
@@ -577,41 +589,34 @@ function App() {
 
             <section className="liminal-deck">
               <h2>Liminal deck ({liminalDeck.length})</h2>
-              <p className="liminal-hint">
-                When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), draw 1 card from the Liminal deck into your hand. The 3 matching cards are discarded. You can draw multiple times per turn. Doesn’t cost an action.
-              </p>
-              {liminalColorMatchThisDraw && (
-                <p className="liminal-color-match-bonus" role="status">
-                  Color match! Gained token(s) — yōkai matched spirits and/or match matched area.
-                </p>
+              {phase === 'draw' && (
+                <>
+                  <p className="liminal-hint">
+                    When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), draw 1 card from the Liminal deck into your hand. The 3 matching cards are discarded. You can draw multiple times per turn. Doesn’t cost an action.
+                  </p>
+                  {liminalColorMatchThisDraw && (
+                    <p className="liminal-color-match-bonus" role="status">
+                      Color match! Gained token(s) — yōkai matched spirits and/or match matched area.
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="btn liminal-btn"
+                    onClick={drawFromLiminal}
+                    disabled={!liminalUnlocked}
+                    title={liminalUnlocked ? 'Draw 1 Liminal card into hand (required, no action)' : 'Match 3 same-color cards in a row or in one column'}
+                  >
+                    Draw from Liminal (no action)
+                  </button>
+                </>
               )}
-              <button
-                type="button"
-                className="btn liminal-btn"
-                onClick={drawFromLiminal}
-                disabled={!liminalUnlocked}
-                title={liminalUnlocked ? 'Draw 1 Liminal card into hand (required, no action)' : 'Match 3 same-color cards in a row or in one column'}
-              >
-                Draw from Liminal (no action)
-              </button>
+              {phase === 'play' && (
+                <p className="liminal-deck-count">Liminal deck: {liminalDeck.length} cards</p>
+              )}
             </section>
-
-            <div className="done-row">
-              {mustDrawFromLiminal && (
-                <span className="done-blocked-hint">Draw from the Liminal deck first.</span>
-              )}
-              <button
-                type="button"
-                className="btn btn-done"
-                onClick={doneDrawing}
-                disabled={mustDrawFromLiminal}
-                title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : undefined}
-              >
-                Done drawing
-              </button>
-            </div>
           </section>
 
+          {phase === 'draw' && (
           <section className="hand hand-draw-phase">
             <h2>Your hand ({hand.length})</h2>
             {pendingDiscardCenterCard && (
@@ -684,77 +689,57 @@ function App() {
                 )
               })}
             </div>
-          </section>
-        </>
-      )}
-
-      {gameStarted && phase === 'play' && (
-        <>
-          <section className="play-area">
-            <h2>Played this turn</h2>
-            <div className="card-row">
-              {played.length === 0 && (
-                <span className="placeholder">Play cards from hand</span>
+            <div className="end-turn-row">
+              {mustDrawFromLiminal && (
+                <span className="done-blocked-hint">Draw from the Liminal deck first.</span>
               )}
-              {played.map((card) => (
-                <div
-                  key={card.instanceId}
-                  className="card played"
-                  style={{
-                    background: CARD_COLORS[card.color] ?? '#444',
-                    color: getCardTextColor(card.color),
-                  }}
-                >
-                  {card.name}
+              <button
+                type="button"
+                className="btn"
+                onClick={endTurn}
+                disabled={mustDrawFromLiminal}
+                title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : undefined}
+              >
+                End turn
+              </button>
+            </div>
+          </section>
+          )}
+
+          {phase === 'play' && (
+            <>
+              <button
+                type="button"
+                className="btn btn-played-modal"
+                onClick={openPlayedModal}
+              >
+                Played this turn ({played.length})
+              </button>
+              <section className="hand">
+                <h2>Hand ({hand.length})</h2>
+                <div className="card-row">
+                  {hand.map((card) => (
+                    <button
+                      key={card.instanceId}
+                      type="button"
+                      className="card in-hand"
+                      onClick={() => playCard(card)}
+                      style={{
+                        background: CARD_COLORS[card.color] ?? '#444',
+                        color: getCardTextColor(card.color),
+                      }}
+                    >
+                      {card.name}
+                      {card.cost > 0 && <span className="cost">{card.cost}</span>}
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="hand">
-            <h2>Hand ({hand.length})</h2>
-            <div className="card-row">
-              {hand.map((card) => (
-                <button
-                  key={card.instanceId}
-                  type="button"
-                  className="card in-hand"
-                  onClick={() => playCard(card)}
-                  style={{
-                    background: CARD_COLORS[card.color] ?? '#444',
-                    color: getCardTextColor(card.color),
-                  }}
-                >
-                  {card.name}
-                  {card.cost > 0 && <span className="cost">{card.cost}</span>}
+                <button type="button" className="btn" onClick={endTurn}>
+                  End turn
                 </button>
-              ))}
-            </div>
-            <button type="button" className="btn" onClick={endTurn}>
-              End turn
-            </button>
-          </section>
-
-          <section className="market">
-            <h2>Market — acquire to add to discard</h2>
-            <div className="card-row">
-              {MARKET_CARDS.map((card) => (
-                <button
-                  key={card.id}
-                  type="button"
-                  className="card market-card"
-                  onClick={() => acquire(card)}
-                  style={{
-                    background: CARD_COLORS[card.color] ?? '#444',
-                    color: getCardTextColor(card.color),
-                  }}
-                >
-                  {card.name}
-                  <span className="cost">{card.cost}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+              </section>
+            </>
+          )}
         </>
       )}
 
@@ -778,6 +763,51 @@ function App() {
               type="button"
               className="btn btn-primary"
               onClick={dismissBonusModal}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      {playedModalOpen && (
+        <div
+          className="bonus-modal-overlay"
+          onClick={dismissPlayedModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="played-modal-title"
+        >
+          <div
+            className="bonus-modal played-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="played-modal-title" className="bonus-modal-title">
+              Played this turn
+            </h2>
+            <div className="played-modal-cards">
+              {played.length === 0 ? (
+                <p className="played-modal-empty">No cards played yet.</p>
+              ) : (
+                played.map((card) => (
+                  <div
+                    key={card.instanceId}
+                    className="card played"
+                    style={{
+                      background: CARD_COLORS[card.color] ?? '#444',
+                      color: getCardTextColor(card.color),
+                    }}
+                  >
+                    {card.name}
+                    {card.cost > 0 && <span className="cost">{card.cost}</span>}
+                  </div>
+                ))
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={dismissPlayedModal}
             >
               Got it
             </button>

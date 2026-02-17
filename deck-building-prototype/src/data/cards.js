@@ -42,14 +42,6 @@ export const STARTER_CARDS = [
   { id: 's8', name: '8', cost: 0, color: 'red' },
 ]
 
-export const MARKET_CARDS = [
-  { id: 'm1', name: '9', cost: 1, color: 'darkBlue' },
-  { id: 'm2', name: '10', cost: 1, color: 'gold' },
-  { id: 'm3', name: '11', cost: 2, color: 'violet' },
-  { id: 'm4', name: '12', cost: 2, color: 'white' },
-  { id: 'm5', name: '13', cost: 3, color: 'red' },
-]
-
 // Three center decks — nature spirits drawn to the threshold. When three align, yōkai may cross.
 // Color = spirit type: red=flame, darkBlue=water, gold=earth/harvest, violet=twilight, black=shadow, white=wind
 export const CENTER_DECK_DEFS = [
