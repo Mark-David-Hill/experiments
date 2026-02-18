@@ -42,33 +42,43 @@ export const STARTER_CARDS = [
   { id: 's8', name: '8', cost: 0, color: 'red' },
 ]
 
-// Three center decks — nature spirits drawn to the threshold. When three align, yōkai may cross.
+// One pool of nature spirits — shuffled and dealt into center decks at game start. When three align, yōkai may cross.
 // Color = spirit type: red=flame, darkBlue=water, gold=earth/harvest, violet=twilight, black=shadow, white=wind
-export const CENTER_DECK_DEFS = [
-  [
-    { id: 'c1-a', name: 'Ember', cost: 0, color: 'red' },
-    { id: 'c1-b', name: 'Ripple', cost: 0, color: 'darkBlue' },
-    { id: 'c1-c', name: 'Grain', cost: 0, color: 'gold' },
-    { id: 'c1-d', name: 'Dusk', cost: 0, color: 'violet' },
-    { id: 'c1-e', name: 'Shadow', cost: 0, color: 'black' },
-  ],
-  [
-    { id: 'c2-a', name: 'Breeze', cost: 0, color: 'white' },
-    { id: 'c2-b', name: 'Veil', cost: 0, color: 'violet' },
-    { id: 'c2-c', name: 'Cinder', cost: 0, color: 'red' },
-    { id: 'c2-d', name: 'Stream', cost: 0, color: 'darkBlue' },
-    { id: 'c2-e', name: 'Amber', cost: 0, color: 'gold' },
-  ],
-  [
-    { id: 'c3-a', name: 'Umbra', cost: 0, color: 'black' },
-    { id: 'c3-b', name: 'Harvest', cost: 0, color: 'gold' },
-    { id: 'c3-c', name: 'Frost', cost: 0, color: 'white' },
-    { id: 'c3-d', name: 'Twilight', cost: 0, color: 'violet' },
-    { id: 'c3-e', name: 'Blaze', cost: 0, color: 'red' },
-  ],
+export const CENTER_CARD_POOL = [
+  { id: 'center-ember', name: 'Ember', cost: 0, color: 'red' },
+  { id: 'center-ripple', name: 'Ripple', cost: 0, color: 'darkBlue' },
+  { id: 'center-grain', name: 'Grain', cost: 0, color: 'gold' },
+  { id: 'center-dusk', name: 'Dusk', cost: 0, color: 'violet' },
+  { id: 'center-shadow', name: 'Shadow', cost: 0, color: 'black' },
+  { id: 'center-mist', name: 'Mist', cost: 0, color: 'white' },
+  { id: 'center-breeze', name: 'Breeze', cost: 0, color: 'white' },
+  { id: 'center-veil', name: 'Veil', cost: 0, color: 'violet' },
+  { id: 'center-cinder', name: 'Cinder', cost: 0, color: 'red' },
+  { id: 'center-stream', name: 'Stream', cost: 0, color: 'darkBlue' },
+  { id: 'center-amber', name: 'Amber', cost: 0, color: 'gold' },
+  { id: 'center-void', name: 'Void', cost: 0, color: 'black' },
+  { id: 'center-umbra', name: 'Umbra', cost: 0, color: 'black' },
+  { id: 'center-harvest', name: 'Harvest', cost: 0, color: 'gold' },
+  { id: 'center-frost', name: 'Frost', cost: 0, color: 'white' },
+  { id: 'center-twilight', name: 'Twilight', cost: 0, color: 'violet' },
+  { id: 'center-blaze', name: 'Blaze', cost: 0, color: 'red' },
+  { id: 'center-wave', name: 'Wave', cost: 0, color: 'darkBlue' },
+  { id: 'center-spark', name: 'Spark', cost: 0, color: 'red' },
+  { id: 'center-tide', name: 'Tide', cost: 0, color: 'darkBlue' },
+  { id: 'center-honey', name: 'Honey', cost: 0, color: 'gold' },
+  { id: 'center-gloom', name: 'Gloom', cost: 0, color: 'violet' },
+  { id: 'center-night', name: 'Night', cost: 0, color: 'black' },
+  { id: 'center-drift', name: 'Drift', cost: 0, color: 'white' },
+  { id: 'center-cloud', name: 'Cloud', cost: 0, color: 'white' },
+  { id: 'center-rain', name: 'Rain', cost: 0, color: 'darkBlue' },
+  { id: 'center-sun', name: 'Sun', cost: 0, color: 'gold' },
+  { id: 'center-shade', name: 'Shade', cost: 0, color: 'violet' },
+  { id: 'center-flame', name: 'Flame', cost: 0, color: 'red' },
+  { id: 'center-ore', name: 'Ore', cost: 0, color: 'black' },
 ]
 
-export const CENTER_DECK_LABELS = ['Left', 'Center', 'Right']
+/** Number of cards dealt to each center deck from the pool at game start */
+export const CENTER_CARDS_PER_DECK = 6
 
 // Liminal deck — draw only when the top card of each center column is the same color (3 in a row).
 // Spirit/youkai themed; causes fantastical interactions with regular cards.

@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import {
   STARTER_CARDS,
-  CENTER_DECK_DEFS,
-  CENTER_DECK_LABELS,
+  CENTER_CARD_POOL,
+  CENTER_CARDS_PER_DECK,
   LIMINAL_DECK_DEFS,
   CARD_COLORS,
   CARD_COLOR_KEYS,
@@ -49,8 +49,8 @@ const initialGameState = () => ({
   discard: [],
   played: [],
   energy: STARTING_ENERGY,
-  centerDecks: [[], [], []],
-  centerColumns: [[], [], []],
+  centerDecks: [[], [], [], [], []],
+  centerColumns: [[], [], [], [], []],
   liminalDeck: [],
   drawActionsRemaining: 0,
   moveSourceColumn: null, // when set, waiting to pick destination to move bottom card (costs 1 action)
@@ -63,23 +63,41 @@ const initialGameState = () => ({
   playedModalOpen: false, // when true, show modal listing cards played this turn
 })
 
-/** Finds first 3-in-a-row (same color): any horizontal row, or any vertical run in a column. */
+const NUM_CENTER_COLUMNS = 5
+
+/** Finds first 3/4/5-in-a-row (same color). Returns match and run length (3, 4, or 5). 4 = +1 token, 5 = +2 tokens. */
 function findFirstMatch(centerColumns) {
-  const cols = centerColumns || [[], [], []]
-  const minLen = Math.min(cols[0]?.length ?? 0, cols[1]?.length ?? 0, cols[2]?.length ?? 0)
-  for (let d = 0; d < minLen; d++) {
-    const c0 = cols[0][d].color
-    const c1 = cols[1][d].color
-    const c2 = cols[2][d].color
-    if (c0 === c1 && c1 === c2) return { type: 'horizontal', rowIndex: d }
+  const cols = centerColumns || Array(NUM_CENTER_COLUMNS).fill([])
+  // Horizontal: check each triple (or more) of consecutive columns
+  for (let startCol = 0; startCol + 3 <= NUM_CENTER_COLUMNS; startCol++) {
+    const len0 = cols[startCol]?.length ?? 0
+    const len1 = cols[startCol + 1]?.length ?? 0
+    const len2 = cols[startCol + 2]?.length ?? 0
+    const minLenTriple = Math.min(len0, len1, len2)
+    for (let d = 0; d < minLenTriple; d++) {
+      const color = cols[startCol][d].color
+      if (cols[startCol + 1][d].color !== color || cols[startCol + 2][d].color !== color) continue
+      let runLength = 3
+      if (startCol + 3 < NUM_CENTER_COLUMNS && (cols[startCol + 3]?.length ?? 0) > d && cols[startCol + 3][d].color === color) {
+        runLength = 4
+        if (startCol + 4 < NUM_CENTER_COLUMNS && (cols[startCol + 4]?.length ?? 0) > d && cols[startCol + 4][d].color === color) {
+          runLength = 5
+        }
+      }
+      return { type: 'horizontal', rowIndex: d, startColIndex: startCol, runLength }
+    }
   }
-  for (let col = 0; col < 3; col++) {
+  for (let col = 0; col < NUM_CENTER_COLUMNS; col++) {
     const colArr = cols[col] || []
     for (let start = 0; start + 3 <= colArr.length; start++) {
-      const c0 = colArr[start].color
-      const c1 = colArr[start + 1].color
-      const c2 = colArr[start + 2].color
-      if (c0 === c1 && c1 === c2) return { type: 'vertical', colIndex: col, startIndex: start }
+      const color = colArr[start].color
+      if (colArr[start + 1].color !== color || colArr[start + 2].color !== color) continue
+      let runLength = 3
+      if (start + 3 < colArr.length && colArr[start + 3].color === color) {
+        runLength = 4
+        if (start + 4 < colArr.length && colArr[start + 4].color === color) runLength = 5
+      }
+      return { type: 'vertical', colIndex: col, startIndex: start, runLength }
     }
   }
   return null
@@ -112,7 +130,7 @@ function App() {
   const liminalMatch = findFirstMatch(centerColumns)
   const liminalMatchColor = liminalMatch
     ? liminalMatch.type === 'horizontal'
-      ? centerColumns[0][liminalMatch.rowIndex].color
+      ? centerColumns[liminalMatch.startColIndex][liminalMatch.rowIndex].color
       : centerColumns[liminalMatch.colIndex][liminalMatch.startIndex].color
     : null
   const canDrawFromLiminal = liminalMatch != null && liminalMatchColor != null
@@ -124,9 +142,17 @@ function App() {
     const playerDeck = shuffle(STARTER_CARDS.map((c) => createCardInstance(c)))
     const { drawn, newDeck } = drawFromPlayerPile(playerDeck, [], HAND_SIZE)
 
-    const centerDecksInit = CENTER_DECK_DEFS.map((defs) =>
-      shuffle(defs.map((c) => createCardInstance(c)))
+    const poolInstances = shuffle(
+      CENTER_CARD_POOL.map((c) => createCardInstance(c))
     )
+    const totalCenter = NUM_CENTER_COLUMNS * CENTER_CARDS_PER_DECK
+    const dealt = poolInstances.slice(0, totalCenter)
+    const centerDecksInit = []
+    for (let i = 0; i < NUM_CENTER_COLUMNS; i++) {
+      centerDecksInit.push(
+        dealt.slice(i * CENTER_CARDS_PER_DECK, (i + 1) * CENTER_CARDS_PER_DECK)
+      )
+    }
     const newColumns = centerDecksInit.map((d) => {
       if (d.length === 0) return []
       const [card, ...rest] = d
@@ -190,32 +216,35 @@ function App() {
       if (!s.liminalDeck.length) return s
       const match = findFirstMatch(s.centerColumns)
       if (!match) return s
+      const runLength = match.runLength ?? 3
       const [card, ...rest] = s.liminalDeck
-      let threeMatching
+      let matchingCards
       let newCenterColumns
       if (match.type === 'horizontal') {
         const d = match.rowIndex
-        threeMatching = [
-          s.centerColumns[0][d],
-          s.centerColumns[1][d],
-          s.centerColumns[2][d],
-        ]
-        newCenterColumns = s.centerColumns.map((col) => [
-          ...col.slice(0, d),
-          ...col.slice(d + 1),
-        ])
+        const startCol = match.startColIndex
+        matchingCards = []
+        for (let i = 0; i < runLength; i++) {
+          matchingCards.push(s.centerColumns[startCol + i][d])
+        }
+        newCenterColumns = s.centerColumns.map((col, i) =>
+          i >= startCol && i < startCol + runLength
+            ? [...col.slice(0, d), ...col.slice(d + 1)]
+            : col
+        )
       } else {
         const { colIndex, startIndex } = match
-        threeMatching = s.centerColumns[colIndex].slice(startIndex, startIndex + 3)
+        matchingCards = s.centerColumns[colIndex].slice(startIndex, startIndex + runLength)
         newCenterColumns = s.centerColumns.map((col, i) =>
           i === colIndex
-            ? [...col.slice(0, startIndex), ...col.slice(startIndex + 3)]
+            ? [...col.slice(0, startIndex), ...col.slice(startIndex + runLength)]
             : col
         )
       }
-      const matchColor = threeMatching[0].color
+      const matchColor = matchingCards[0].color
       const colorMatch = matchColor === card.color
       const areaMatch = matchColor === s.areaColor
+      const runBonus = runLength === 4 ? 1 : runLength === 5 ? 2 : 0
 
       let newTokens = { ...s.tokens }
       if (colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token') {
@@ -224,20 +253,20 @@ function App() {
       if (areaMatch) {
         newTokens = { ...newTokens, [matchColor]: (newTokens[matchColor] ?? 0) + 1 }
       }
+      if (runBonus > 0) {
+        newTokens = { ...newTokens, [matchColor]: (newTokens[matchColor] ?? 0) + runBonus }
+      }
 
       let bonusModal = null
-      if (colorMatch || areaMatch) {
-        const parts = []
-        if (colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token') {
-          parts.push('Yōkai matched the spirits')
-        }
-        if (areaMatch) {
-          parts.push('Match matched the area')
-        }
-        const tokenCount = (colorMatch ? 1 : 0) + (areaMatch ? 1 : 0)
+      const tokenParts = []
+      if (colorMatch && LIMINAL_COLOR_MATCH_BONUS === 'token') tokenParts.push('yōkai matched spirits')
+      if (areaMatch) tokenParts.push('match matched area')
+      if (runBonus > 0) tokenParts.push(`${runLength}-in-a-row (+${runBonus})`)
+      const totalTokens = (colorMatch ? 1 : 0) + (areaMatch ? 1 : 0) + runBonus
+      if (totalTokens > 0) {
         bonusModal = {
           title: 'Bonus!',
-          message: `${parts.join(' and ')} — +${tokenCount} token${tokenCount !== 1 ? 's' : ''} (${matchColor}).`,
+          message: `${tokenParts.join(', ')} — +${totalTokens} token${totalTokens !== 1 ? 's' : ''} (${matchColor}).`,
         }
       }
 
@@ -246,8 +275,8 @@ function App() {
         liminalDeck: rest,
         hand: [...s.hand, card],
         centerColumns: newCenterColumns,
-        discard: [...s.discard, ...threeMatching],
-        liminalColorMatchThisDraw: colorMatch || areaMatch,
+        discard: [...s.discard, ...matchingCards],
+        liminalColorMatchThisDraw: colorMatch || areaMatch || runBonus > 0,
         tokens: newTokens,
         bonusModal,
       }
@@ -494,7 +523,7 @@ function App() {
             </h2>
             {phase === 'draw' && typeof moveSourceColumn === 'number' && (
               <div className="move-card-hint">
-                {`Move bottom card to column (click ${CENTER_DECK_LABELS[moveSourceColumn]} to cancel)`}
+                Move bottom card to another column
                 <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
                   Cancel
                 </button>
@@ -511,10 +540,10 @@ function App() {
             <div
               className={`center-columns ${phase === 'play' ? 'center-columns-readonly' : ''}`}
             >
-              {[0, 1, 2].map((i) => (
+              {Array.from({ length: NUM_CENTER_COLUMNS }, (_, i) => i).map((i) => (
                 <div
                   key={i}
-                  className={`center-column ${i === 1 ? 'center-column-middle' : ''} ${
+                  className={`center-column ${i === Math.floor(NUM_CENTER_COLUMNS / 2) ? 'center-column-middle' : ''} ${
                     phase === 'draw' && handCardToPlace ? 'center-column-dest' : phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
                   } ${phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''}`}
                   onClick={
@@ -527,9 +556,6 @@ function App() {
                   role={phase === 'draw' && (handCardToPlace || (typeof moveSourceColumn === 'number' && moveSourceColumn !== i)) ? 'button' : undefined}
                   tabIndex={phase === 'draw' && typeof moveSourceColumn === 'number' ? 0 : undefined}
                 >
-                  <div className="center-column-label">
-                    {CENTER_DECK_LABELS[i]} deck ({centerDecks[i]?.length ?? 0})
-                  </div>
                   {phase === 'draw' && (
                     <button
                       type="button"
@@ -538,7 +564,7 @@ function App() {
                       disabled={!centerDecks[i]?.length || mustDrawFromLiminal || drawActionsRemaining <= 0}
                       title={mustDrawFromLiminal ? 'Draw from the Liminal deck first' : drawActionsRemaining <= 0 ? 'No actions left' : '1 action: add a card from this deck to the column'}
                     >
-                      Draw from {CENTER_DECK_LABELS[i]}
+                      Deck ({centerDecks[i]?.length ?? 0})
                     </button>
                   )}
                   <div className="center-column-stack">
@@ -592,7 +618,7 @@ function App() {
               {phase === 'draw' && (
                 <>
                   <p className="liminal-hint">
-                    When the top card of each column is the same color (3 in a row) or one column has 3 same-color cards on top (vertical stack), draw 1 card from the Liminal deck into your hand. The 3 matching cards are discarded. You can draw multiple times per turn. Doesn’t cost an action.
+                    When 3+ same-color cards align (in consecutive columns at a row, or in one column), draw 1 from the Liminal deck. 4 in a row = +1 token; 5 in a row = +2 tokens. The 3 matching cards are discarded. You can draw multiple times per turn. Doesn’t cost an action.
                   </p>
                   {liminalColorMatchThisDraw && (
                     <p className="liminal-color-match-bonus" role="status">
@@ -604,7 +630,7 @@ function App() {
                     className="btn liminal-btn"
                     onClick={drawFromLiminal}
                     disabled={!liminalUnlocked}
-                    title={liminalUnlocked ? 'Draw 1 Liminal card into hand (required, no action)' : 'Match 3 same-color cards in a row or in one column'}
+                    title={liminalUnlocked ? 'Draw 1 Liminal card (no action—you can draw multiple times per turn)' : 'Match 3 same-color cards in a row or in one column'}
                   >
                     Draw from Liminal (no action)
                   </button>
