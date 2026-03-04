@@ -296,6 +296,24 @@ function App() {
     setState((s) => ({ ...s, moveSourceColumn: null }))
   }, [])
 
+  const takeBottomCardToHand = useCallback(() => {
+    setState((s) => {
+      if (typeof s.moveSourceColumn !== 'number' || s.drawActionsRemaining <= 0) return s
+      const colIndex = s.moveSourceColumn
+      const col = s.centerColumns[colIndex] || []
+      if (col.length === 0) return s
+      const card = col[col.length - 1]
+      const newCol = col.slice(0, -1)
+      return {
+        ...s,
+        centerColumns: s.centerColumns.map((c, i) => (i === colIndex ? newCol : c)),
+        hand: [...s.hand, card],
+        drawActionsRemaining: s.drawActionsRemaining - 1,
+        moveSourceColumn: null,
+      }
+    })
+  }, [])
+
   const selectMoveSourceOrDest = useCallback((columnIndex) => {
     setState((s) => {
       if (typeof s.moveSourceColumn === 'number') {
@@ -335,15 +353,14 @@ function App() {
 
   const selectHandCardToPlace = useCallback((card) => {
     setState((s) => {
-      if (s.handCardToPlace || s.pendingDiscardCenterCard || typeof s.moveSourceColumn === 'number') return s
+      if (s.pendingDiscardCenterCard || typeof s.moveSourceColumn === 'number') return s
       if (s.drawActionsRemaining <= 0) return s
       const match = findFirstMatch(s.centerColumns)
       const mustDraw = match != null && s.liminalDeck.length > 0
       if (mustDraw) return s
       return {
         ...s,
-        hand: s.hand.filter((c) => c.instanceId !== card.instanceId),
-        handCardToPlace: card,
+        handCardToPlace: s.handCardToPlace?.instanceId === card.instanceId ? null : card,
       }
     })
   }, [])
@@ -355,6 +372,7 @@ function App() {
       return {
         ...s,
         centerColumns: s.centerColumns.map((c, i) => (i === columnIndex ? [...c, s.handCardToPlace] : c)),
+        hand: s.hand.filter((c) => c.instanceId !== s.handCardToPlace.instanceId),
         handCardToPlace: null,
         drawActionsRemaining: s.drawActionsRemaining - 1,
       }
@@ -362,14 +380,7 @@ function App() {
   }, [])
 
   const cancelPlaceHandCard = useCallback(() => {
-    setState((s) => {
-      if (!s.handCardToPlace) return s
-      return {
-        ...s,
-        hand: [...s.hand, s.handCardToPlace],
-        handCardToPlace: null,
-      }
-    })
+    setState((s) => (s.handCardToPlace ? { ...s, handCardToPlace: null } : s))
   }, [])
 
   const dismissBonusModal = useCallback(() => {
@@ -518,12 +529,21 @@ function App() {
           <section className="center-decks">
             <h2 className={phase === 'play' ? 'center-decks-play-h2' : ''}>
               {phase === 'draw'
-                ? `Center row — spend 1 action to draw a card from a deck into its column (${drawActionsRemaining} actions left)`
+                ? `Center row — 1 action: draw from deck into column, move bottom card, take bottom to hand, or place card from hand to bottom (${drawActionsRemaining} actions left)`
                 : 'Center row'}
             </h2>
             {phase === 'draw' && typeof moveSourceColumn === 'number' && (
               <div className="move-card-hint">
-                Move bottom card to another column
+                Bottom card: move to column or take to hand (1 action each)
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={takeBottomCardToHand}
+                  disabled={drawActionsRemaining <= 0}
+                  title={drawActionsRemaining <= 0 ? 'No actions left' : 'Take this card to your hand (1 action)'}
+                >
+                  Take to hand (1 action)
+                </button>
                 <button type="button" className="btn btn-cancel-move" onClick={cancelMoveCard}>
                   Cancel
                 </button>
@@ -531,7 +551,7 @@ function App() {
             )}
             {phase === 'draw' && handCardToPlace && (
               <div className="move-card-hint">
-                Place card at bottom of a column (1 action)
+                Click a column to place the selected card at the bottom (1 action)
                 <button type="button" className="btn btn-cancel-move" onClick={cancelPlaceHandCard}>
                   Cancel
                 </button>
@@ -579,29 +599,35 @@ function App() {
                           !mustDrawFromLiminal &&
                           (centerColumns[i]?.length ?? 0) > 0
                         const isDiscardTarget = phase === 'draw' && !!pendingDiscardCenterCard
+                        const isPlaceTarget = phase === 'draw' && !!handCardToPlace
                         return (
                           <div
                             key={card.instanceId}
-                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''}`}
+                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''} ${isPlaceTarget ? 'center-card-place-target' : ''}`}
                             style={{
                               background: CARD_COLORS[card.color] ?? '#444',
                               color: getCardTextColor(card.color),
                             }}
                             onClick={
-                              isDiscardTarget
+                              isPlaceTarget
                                 ? (e) => {
                                     e.stopPropagation()
-                                    discardCenterCard(i, idx)
+                                    placeHandCardOnColumn(i)
                                   }
-                                : isBottom && canSelectAsSource
+                                : isDiscardTarget
                                   ? (e) => {
                                       e.stopPropagation()
-                                      selectMoveSourceFromCard(i)
+                                      discardCenterCard(i, idx)
                                     }
-                                  : undefined
+                                  : isBottom && canSelectAsSource
+                                    ? (e) => {
+                                        e.stopPropagation()
+                                        selectMoveSourceFromCard(i)
+                                      }
+                                    : undefined
                             }
-                            role={isDiscardTarget || (isBottom && canSelectAsSource) ? 'button' : undefined}
-                            title={isDiscardTarget ? 'Discard this card' : isBottom && canSelectAsSource ? 'Click to move this card (1 action)' : undefined}
+                            role={isPlaceTarget || isDiscardTarget || (isBottom && canSelectAsSource) ? 'button' : undefined}
+                            title={isPlaceTarget ? 'Place selected card at bottom of this column (1 action)' : isDiscardTarget ? 'Discard this card' : isBottom && canSelectAsSource ? 'Click to move this card (1 action)' : undefined}
                           >
                             {card.name}
                           </div>
@@ -654,16 +680,16 @@ function App() {
               </div>
             )}
             <div className="card-row">
-              {hand.length === 0 && !handCardToPlace && (
+              {hand.length === 0 && (
                 <span className="placeholder">No cards in hand</span>
               )}
               {hand.map((card) => {
                 const canPlayAbility = card.ability === 'discard_center' && !pendingDiscardCenterCard
                 const canPlaceOnColumn =
-                  !handCardToPlace &&
                   !pendingDiscardCenterCard &&
                   drawActionsRemaining > 0 &&
                   !mustDrawFromLiminal
+                const isSelectedForPlace = handCardToPlace?.instanceId === card.instanceId
                 if (canPlayAbility) {
                   return (
                     <button
@@ -687,13 +713,13 @@ function App() {
                     <button
                       key={card.instanceId}
                       type="button"
-                      className="card in-hand"
+                      className={`card in-hand ${isSelectedForPlace ? 'selected-for-place' : ''}`}
                       onClick={() => selectHandCardToPlace(card)}
                       style={{
                         background: CARD_COLORS[card.color] ?? '#444',
                         color: getCardTextColor(card.color),
                       }}
-                      title="Place at bottom of a column (1 action)"
+                      title={isSelectedForPlace ? 'Click a column to place, or click again to cancel' : 'Select to place at bottom of a column (1 action)'}
                     >
                       {card.name}
                       {card.cost > 0 && <span className="cost">{card.cost}</span>}

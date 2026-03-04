@@ -152,6 +152,12 @@ section h2 {
   border-color: #667eea;
 }
 
+.card.in-hand.selected-for-place {
+  box-shadow: 0 0 0 3px #c9a227;
+  border-color: #c9a227;
+  transform: translateY(-2px);
+}
+
 .card.played {
   background: linear-gradient(145deg, #3d2d5c 0%, #2a1e4a 100%);
   color: #e8e0ff;
@@ -259,6 +265,15 @@ section h2 {
 
 .center-card-discard-target:hover {
   filter: brightness(1.15);
+  box-shadow: 0 0 0 2px #c9a227;
+}
+
+.center-card-place-target {
+  cursor: pointer;
+}
+
+.center-card-place-target:hover {
+  filter: brightness(1.1);
   box-shadow: 0 0 0 2px #c9a227;
 }
 
