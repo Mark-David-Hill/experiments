@@ -277,6 +277,11 @@ section h2 {
   box-shadow: 0 0 0 2px #c9a227;
 }
 
+.center-card-in-match {
+  box-shadow: 0 0 0 3px #e8c547, 0 0 12px rgba(232, 197, 71, 0.5);
+  filter: brightness(1.15);
+}
+
 .center-column {
   display: flex;
   flex-direction: column;

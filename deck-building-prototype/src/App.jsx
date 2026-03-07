@@ -600,10 +600,21 @@ function App() {
                           (centerColumns[i]?.length ?? 0) > 0
                         const isDiscardTarget = phase === 'draw' && !!pendingDiscardCenterCard
                         const isPlaceTarget = phase === 'draw' && !!handCardToPlace
+                        const runLength = liminalMatch?.runLength ?? 0
+                        const isInMatch =
+                          liminalMatch &&
+                          (liminalMatch.type === 'horizontal'
+                            ? i >= liminalMatch.startColIndex &&
+                              i < liminalMatch.startColIndex + runLength &&
+                              idx === liminalMatch.rowIndex
+                            : liminalMatch.type === 'vertical' &&
+                              i === liminalMatch.colIndex &&
+                              idx >= liminalMatch.startIndex &&
+                              idx < liminalMatch.startIndex + runLength)
                         return (
                           <div
                             key={card.instanceId}
-                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''} ${isPlaceTarget ? 'center-card-place-target' : ''}`}
+                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''} ${isPlaceTarget ? 'center-card-place-target' : ''} ${isInMatch ? 'center-card-in-match' : ''}`}
                             style={{
                               background: CARD_COLORS[card.color] ?? '#444',
                               color: getCardTextColor(card.color),

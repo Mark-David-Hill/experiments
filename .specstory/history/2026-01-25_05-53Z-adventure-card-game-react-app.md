@@ -6,330 +6,6 @@
 
 _**User**_
 
-Are there any existing deck builders with similar mechanics?
-
----
-
-_**Agent (model default, mode Agent)**_
-
-<think><details><summary>Thought Process</summary>
-
-The user is asking about existing deck-building games that have similar mechanics to what we implemented - specifically:
-1. At start of turn, draw 5 cards
-2. Three center decks that you draw from
-3. One card revealed from each center deck, side by side
-4. Push-your-luck: choose to draw another from one of the center decks, which adds to that column (cards slide down) AND lets you draw another from your own deck
-
-So the distinctive elements are:
-- Multiple "market" or center piles (3) rather than a single row
-- Push-your-luck element where drawing more from center also gives you more from your deck
-- Column growth (revealing more from that pile)
-
-I should search for deck-building games with similar mechanics - multiple draw piles, push your luck, or "draw phase" with optional extra draws.
-</details></think>
-
----
-
-
-
----
-
-<tool-use data-tool-type="search" data-tool-name="web_search">
-<details>
-            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
-        
-| Title | URL | Chunk |
-|-------|-----|-------|
-| Web search results for query: deck building board game multiple center decks draw piles push your luck |  | Links:<br/>1. [Dead Man's Draw (2-4 Player Press Your Luck Filler Game)](https://www.maydaygames.com/products/dead-mans-draw)<br/>2. [Team & Deck Builder \| Chaos Zero Nightmare (CZN) \| Prydwen Institute](https://prydwen.gg/chaos-zero-nightmare/deck-builder)<br/>3. [boardgame geek](https://boardgamegeek.com/boardgame/201808/clank-a-deck-building-adventure)<br/>4. [Hardback Game Rules](https://ultraboardgames.com/hardback/game-rules.php)<br/>5. [TEN Rulebook - 1jour-1jeu.com](https://cdn.1j1ju.com/medias/8d/f0/57-ten-rulebook.pdf)<br/><br/># Deck Building Board Games with Multiple Center Decks, Draw Piles, and Push Your Luck<br/><br/>Based on the search results, here are relevant games that combine deck building with push-your-luck mechanics:<br/><br/>## Dead Man's Draw<br/>A pirate-themed push-your-luck card game for 2-4 players where you draw cards one at a time from a central deck, trying to collect the most loot without busting.[1] The core mechanic involves drawing cards and using their special abilities, with the risk that drawing two cards of the same suit causes you to lose your turn and accumulated treasure.[1] Games last about 10-15 minutes.[1]<br/><br/>## Hardback<br/>A deck-building word game where players start with personal decks and acquire new cards throughout the game.[4] It features press-your-luck mechanics where you "draw extra cards" but must still be able to form valid words.[4] The game uses multiple card types (Adventure, Horror, Mystery, and Romance cards) drawn from a central Offer Deck.[4]<br/><br/>## TEN<br/>A push-your-luck and auction game where players draw cards one-at-a-time from a central deck, trying to add cards without exceeding a value of 10 or they bust.[5] Players build sequences in four different colors and can use currency to acquire additional cards.[5]<br/><br/>These games all feature central draw piles from which players take turns drawing, combined with deck-building elements and push-your-luck decision-making about when to stop drawing. |
-
-</details>
-</tool-use>
-
----
-
-<tool-use data-tool-type="search" data-tool-name="web_search">
-<details>
-            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
-        
-| Title | URL | Chunk |
-|-------|-----|-------|
-| Web search results for query: deck builder game draw phase choose to draw more cards similar mechanics |  | Links:<br/>1. [Making sure you're not a bot!](https://wiki.dominionstrategy.com/index.php/Draw)<br/>2. [Magic: The Gathering Comprehensive Rules](https://ancestral.vision/game-concepts/drawing-a-card.html)<br/>3. [Hero Realms Base Game Rules](https://www.herorealms.com/base-game-rules/)<br/>4. [](https://archonarcana.com/Drawing_Cards)<br/>5. [Abundance (Tenth Edition English) \| Magic: The Gathering](https://gatherer.wizards.com/10E/en-us/249/abundance)<br/><br/># Deck Builder Games with Draw Phase Choice Mechanics<br/><br/>The search results don't provide a comprehensive list of deck builder games with optional draw mechanics, but they do illustrate how draw phases work in several card games:<br/><br/>**Magic: The Gathering** features conditional draw mechanics through cards like Abundance, which allows players to replace normal draws with a choice to search for either a land or nonland card from their deck.[2][5] This gives players agency over what they draw rather than simply drawing the top card.<br/><br/>**Hero Realms**, a deck-building game, uses a traditional draw phase where players draw cards at the start of their turn to build their hand before playing cards for resources like Gold and Combat.[3]<br/><br/>**KeyForge** follows a standard draw system where players draw cards one at a time to refill their hand during their draw step, with the number determined before drawing begins.[4]<br/><br/>**Magic: The Gathering's comprehensive rules** also note that some effects allow players to choose whether to draw multiple cards, giving them decision-making power over card draws.[2]<br/><br/>The common thread across these games is that while basic draw phases are automatic, many games include card effects or abilities that let players make choices about their draws—either replacing draws with searches, choosing what to draw, or deciding whether to draw at all. |
-
-</details>
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-Let me search more specifically for games with "three rows" or "multiple supply piles" or games like Star Realms/Hero Realms market, or Ascension-style center row, and also for "draw from multiple decks" or "column" style markets.
-</details></think>
-
----
-
-
-
----
-
-<tool-use data-tool-type="search" data-tool-name="web_search">
-<details>
-            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
-        
-| Title | URL | Chunk |
-|-------|-----|-------|
-| Web search results for query: Ascension Star Realms center row market deck builder multiple piles |  | Links:<br/>1. [](https://files.wisewizardgames.com/starrealms/StarRealms_Frontiers_RuleBook2.pdf)<br/>2. [Rules Updates and Clarifications](https://www.starrealms.com/faq/)<br/>3. [Learn to Play](https://www.starrealms.com/learn-to-play/)<br/>4. [RulesPal](https://www.rulespal.com/star-realms/rulebook)<br/>5. [Star Realms Game Rules](https://ultraboardgames.com/star-realms/game-rules.php)<br/><br/># Star Realms Market Deck and Center Row<br/><br/>In Star Realms, the **market** (called the "Trade Row" or "Center Row") consists of **5 cards** laid out face-up from a shuffled Trade Deck.[1][3][5] This is a single central market shared by all players, not multiple separate piles.<br/><br/>When a card is acquired from the Trade Row using Trade resources, it is immediately replaced with the top card from the Trade Deck, maintaining the 5-card display.[3]<br/><br/>## Market Deck Composition<br/><br/>For building a market deck with cards from multiple Star Realms products, the recommended quantities are based on rarity:[2]<br/>- **Gold (Rare)**: 1 copy per card<br/>- **Silver (Uncommon)**: 2 copies per card  <br/>- **White (Common)**: 3 copies per card<br/><br/>The Trade Deck in the standard game contains 80 cards total (20 from each of the four factions).[1][5]<br/><br/>There is no system of "multiple piles" in the standard market—all cards come from the single Trade Deck that feeds the 5-card Trade Row display. |
-
-</details>
-</tool-use>
-
----
-
-<tool-use data-tool-type="search" data-tool-name="web_search">
-<details>
-            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
-        
-| Title | URL | Chunk |
-|-------|-----|-------|
-| Web search results for query: deck building game "draw" "from" "pile" OR "column" optional extra cards turn |  | Links:<br/>1. [](https://www.deadmansdrawgame.com/)<br/>2. [Rules \| Piles Card Game](https://pilescardgame.com/rules/)<br/>3. [Card Games: Draw and Discard](https://boardgamegeek.com/boardgamefamily/24439/card-games-draw-and-discard)<br/>4. [Instructions & Strategy](https://stackthedeckcardgame.com/instructions-%26-strategy)<br/>5. [Team & Deck Builder \| Chaos Zero Nightmare (CZN) \| Prydwen Institute](https://prydwen.gg/chaos-zero-nightmare/deck-builder)<br/><br/>Based on the search results, here are deck building games featuring optional extra card draws:<br/><br/>**Stack The Deck™** is a card game where players draw 2 cards per turn as a standard action.[4] On each turn, you must play at least one card on your stacks (building pairs or runs), and then have the option to play your second card either on your own stacks or steal an opponent's stack.[4] The game uses a draw pile in the center, and discarded cards are reinserted back into the deck.[4]<br/><br/>**Piles** is a simultaneous-play card game where players work with six piles of cards arranged in columns in front of them.[2] During gameplay, you discard one card to a center pile and then draw one card from the center to replace it, maintaining four cards per pile.[2] The game features a draw pile in the center of the table with face-up cards available for drawing.[2]<br/><br/>**Dead Man's Draw** is a press-your-luck card game where you draw cards from a pile, with the option to continue drawing additional cards on your turn or stop and bank your gains.[1] The game involves chaining together card combos for points.<br/><br/>These games all feature the mechanic of drawing cards from a central pile or column arrangement with options to take additional cards during a turn. |
-
-</details>
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-Let me try one more search for games that have "three" separate decks or rows that you draw from, or similar to "flip and reveal" from multiple sources.
-</details></think>
-
----
-
-
-
----
-
-<tool-use data-tool-type="search" data-tool-name="web_search">
-<details>
-            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
-        
-| Title | URL | Chunk |
-|-------|-----|-------|
-| Web search results for query: deck builder three separate decks market flip reveal push luck |  | Links:<br/>1. [Team & Deck Builder \| Chaos Zero Nightmare (CZN) \| Prydwen Institute](https://prydwen.gg/chaos-zero-nightmare/deck-builder)<br/>2. [Flip 7](https://boardgamegeek.com/boardgame/420087/flip-7)<br/>3. [Flip 7](https://theop.games/pages/flip-7)<br/>4. [Fetch-Building](https://spacebiff.com/2025/09/19/unstoppable/)<br/>5. [Post navigation](https://www.majorfun.com/flip-7/)<br/><br/># Summary<br/><br/>Based on your search query, here's what I found:<br/><br/>**Flip 7** appears to be the most relevant match. It's a card game that combines elements of blackjack, rummy, and poker with a press-your-luck mechanic.[5] Players try to assemble a set of 7 cards one by one each round, choosing each turn whether to "hit" (extend their set and score) or "stand" (bank their points safely). The risk is that a single matching card will bust the player back to nothing.[5]<br/><br/>**Unstoppable** is a solitaire deck-building game that features a card market system.[4] It uses a unique card-layering mechanic where cards are placed in plastic sleeves to modify other cards. Players draw cards from their deck and place them as threats that must be defeated.[4]<br/><br/>However, neither of these games explicitly matches all the specific mechanics you mentioned (three separate decks, market, flip, reveal, push, luck). The search results don't appear to contain a game with that exact combination of features. You may want to refine your search with additional details about the game you're looking for. |
-
-</details>
-</tool-use>
-
----
-
-<tool-use data-tool-type="search" data-tool-name="web_search">
-<details>
-            <summary>Tool use: **web_search** • Searched web `undefined` • **1** results</summary>
-        
-| Title | URL | Chunk |
-|-------|-----|-------|
-| Web search results for query: "Hardback" deck building press your luck draw extra cards |  | Links:<br/>1. [Hardback Game Rules](https://ultraboardgames.com/hardback/game-rules.php)<br/>2. [Hardback Fan Site \| UltraBoardGames](https://ultraboardgames.com/hardback)<br/>3. [](https://cs.uwaterloo.ca/~dtompkin/dtlib/base/Hardback.pdf)<br/>4. [The Cardboard Cantina](https://thecardboardcantina.com/hardback/)<br/>5. [Buy Hardback Card Game \| Oxford Games](https://oxfordgames.co.uk/shop/hardback/)<br/><br/># Hardback: Deck Building with Press Your Luck<br/><br/>**Hardback** is a deck-building word game where players take on the role of 19th-century novelists competing to earn prestige points.[1] <br/><br/>## Core Mechanics<br/><br/>Players build personalized decks of letter cards and use them to spell words, acquire new cards, and accumulate prestige.[1] The game combines deck building with word construction—you must be able to form valid words from the cards you draw.<br/><br/>## Press Your Luck System<br/><br/>The "press your luck" element is implemented through an **Ink token system**.[2][5] Players can spend Ink tokens to draw extra cards beyond their initial hand, allowing them to take risks for more options. However, the catch is that you must still be able to spell a valid word with whatever cards you ultimately have in play—pushing your luck too far can leave you unable to complete a word.[1][3]<br/><br/>## Deck Specialization<br/><br/>Players can specialize their decks by focusing on specific genres (Romance, Mystery, Adventure, and Horror) to exploit card combinations and trigger genre-based bonus abilities.[1][2]<br/><br/>## Game Details<br/><br/>- **Players:** 1-5<br/>- **Playing Time:** 45-90 minutes  <br/>- **Objective:** First to reach 60 prestige points wins[5]<br/><br/>The game includes multiple variants and a cooperative mode for added variety.[2][5] |
-
-</details>
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-I have a good picture now. Let me summarize for the user:
-
-1. **Your mechanic** is quite specific: 3 center decks, 1 card revealed from each at start of turn, then optionally draw more from any of those 3 (column grows, and you also draw from your own deck). So it's:
-   - Multiple separate "market" decks (3) rather than one shared row
-   - Push-your-luck = "draw more from center + get more from your deck"
-   - Column/stack growth per deck
-
-2. **Similar games found:**
-   - **Hardback**: Deck-building + press-your-luck. You spend Ink to draw *extra cards* and must still spell a word. So "choose to draw more" with a risk (might not spell). Not multiple center decks though—one market.
-   - **Dead Man's Draw**: Push-your-luck, draw from one central deck; same-suit = bust. Not deck-building, and single pile.
-   - **Star Realms / Ascension**: Single center row (5 cards) from one deck; buy from the row. No "draw more from center and also from your deck" or 3 separate piles.
-   - **TEN**: Push-your-luck, draw from central deck, try not to exceed 10. Not really deck-building in the same sense.
-   - **Piles**: Six piles in columns, draw/discard from center. Different structure.
-
-None of these do the exact thing: 3 independent center decks, each revealing a column, and the choice to "draw from this column (add to column) and draw from your deck." So I should say: there are games with *pieces* of this (push-your-luck, multiple piles, optional extra draws), but the specific combo of 3 center decks + column growth + "draw from center and from your deck" doesn't appear to have a well-known direct match. I'll mention the closest ones and that the combination seems fairly unique.
-</details></think>
-
----
-
-Here’s how your idea compares to what’s out there:
-
-**Closest overlaps (but not the same):**
-
-- **Hardback** (deck-building + press-your-luck)  
-  You can spend Ink to **draw extra cards** during your turn, then you must spell a word with what you have. So there’s a clear “choose to draw more” risk. The market is a single offer row (Adventure / Horror / etc.), not three separate decks with columns.
-
-- **Dead Man’s Draw** (push-your-luck, not deck-building)  
-  You draw from **one** central deck and can keep drawing; drawing two of the same suit busts you. So: one shared pile and a simple push-your-luck rule, no “three decks” or “draw from center and from your deck.”
-
-- **Star Realms / Ascension**  
-  One **center row** (e.g. 5 cards) from a single market deck; you buy from that row. No “draw from this pile and also from your deck,” and no three independent piles.
-
-- **TEN**  
-  Push-your-luck with a central deck (don’t go over 10). Not a deck-builder and no column/multi-pile structure like yours.
-
-**Your mix is uncommon:**
-
-- **Three center decks**, each with its own **column** that grows as you draw from it.  
-- **Optional draw** = “draw one more from this center column **and** one from your deck.”  
-- That specific “grow a column + fuel your hand” push-your-luck isn’t something that shows up in the usual references.
-
-So: there are deck-builders with optional/push-your-luck draws (e.g. Hardback) and games with central draw piles and risk (e.g. Dead Man’s Draw), but the exact pattern—three separate center decks, column growth, and “draw from this column + draw from your deck”—doesn’t match a well-known title. It’s a distinct twist you can treat as your own unless you later find a niche or digital game that does it.
-
----
-
-_**User**_
-
-Nice. For this one, I would like to be able to see your current hand of cards at the bottom while you're deciding if you want to draw more cards.
-
----
-
-_**Agent (model default, mode Agent)**_
-
-<think><details><summary>Thought Process</summary>
-
-The user wants to see their current hand of cards at the bottom of the screen during the draw phase (when they're deciding whether to draw more from the center decks). Right now in the draw phase we only show the center columns and the "Done drawing" button - the hand is only visible in the play phase.
-
-I need to show the hand during phase === 'draw' as well, at the bottom of the screen.
-</details></think>
-
----
-
-
-
----
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
-
-</details>
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-I need to see the draw phase section and add a hand display at the bottom. Let me read the part where we render phase === 'draw'.
-</details></think>
-
----
-
-
-
----
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
-
-</details>
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-I'll add a hand section at the bottom of the draw phase. The hand should be read-only (no play) during draw - just display the cards. I can reuse the same card styling but without the button/click for play. I'll add a section like "Your hand" with the cards in a row at the bottom.
-</details></think>
-
----
-
-Adding a read-only hand display at the bottom during the draw phase.
-
-
----
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
-
-</details>
-
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-I added the hand section. The cards use the same .in-hand styling but with .display-only so we can remove cursor/pointer and any hover "play" feel if desired. Let me add a small CSS tweak so the draw-phase hand is clearly at the bottom and the display-only cards don't look clickable.
-</details></think>
-
----
-
-Adding CSS so the draw-phase hand sits at the bottom and cards look read-only:
-
-
----
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
-
-</details>
-
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-To make the hand truly "at the bottom" of the viewport we could use flexbox on .app with flex-direction column and min-height 100vh, then margin-top: auto on the hand section. Let me check the app layout.
-</details></think>
-
----
-
-Making the layout keep the hand at the bottom when the content is short:
-
-
----
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
-
-</details>
-
-</tool-use>
-
----
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
-
-</details>
-
-</tool-use>
-
----
-
-<think><details><summary>Thought Process</summary>
-
-When phase is 'play', we have multiple sections that don't use margin-top: auto, so the flex layout might push things oddly. Let me check - the hand-draw-phase is only rendered when phase === 'draw', so the .hand-draw-phase class is only on that one section. When we're in play phase, the .app has flex and column, but no child has margin-top: auto, so the content will just flow from top. That's fine. When in draw phase, we have center-decks and then hand-draw-phase; hand-draw-phase has margin-top: auto so it will stick to the bottom. Good.
-</details></think>
-
----
-
-Summary of changes:
-
-**Draw phase – hand at the bottom**
-- In the draw phase, a **“Your hand (n)”** section is shown below the center decks and “Done drawing” button.
-- It lists all cards currently in your hand in a row, using the same card style as the play phase but **read-only** (no hover/click).
-- Cards use the class `display-only` so they don’t look or act clickable.
-
-**Layout**
-- `.app` is a flex column with `min-height: 100vh`.
-- The draw-phase hand section has `margin-top: auto` so it sits at the **bottom** of the viewport when you’re deciding whether to draw more.
-- A top border and padding separate it from the center row above.
-
-You always see your current hand at the bottom while choosing to draw from Left/Center/Right or hit “Done drawing.”
-
----
-
-_**User**_
-
 I don't see more cards being added to my hand as I draw cards from the 3 columns.
 
 ---
@@ -14307,7 +13983,6 @@ Let me implement. I'll need to update selectHandCardToPlace to not remove from h
 
 ---
 
-
 Keeping the card in hand and only highlighting it when selected; we'll remove it from hand when it's placed. Checking the current flow:
 
 
@@ -14392,7 +14067,6 @@ Let me implement.
 
 ---
 
-
 Keeping the card in hand when selected (highlight only) and removing it only when placed.
 
 
@@ -14420,7 +14094,6 @@ Now I need to update the hand display so that:
 
 ---
 
-
 Updating the hand UI: show the selected card highlighted (still in hand) and allow clicking it to deselect or another card to change selection.
 
 
@@ -14442,7 +14115,6 @@ Now update the hint when handCardToPlace is set - it can say "Click a column to 
 </details></think>
 
 ---
-
 
 Updating the hint and adding highlight styles.
 
@@ -14509,8 +14181,6 @@ Add .selected-for-place style for the highlighted card - e.g. box-shadow and bor
 
 
 
-
-
 ---
 
 <tool-use data-tool-type="write" data-tool-name="edit_file_v2">
@@ -14563,7 +14233,6 @@ All good. Summary for the user.
 
 ---
 
-
 Summary of changes:
 
 **1. Select = highlight only (card stays in hand)**  
@@ -14610,7 +14279,6 @@ So the fix: when handCardToPlace is set, we should make clicking on any card in 
 
 ---
 
-
 Making clicks on any card in a column place the selected hand card when we have a card selected for placing:
 
 
@@ -14630,7 +14298,6 @@ I see. The column div has onClick for placeHandCardOnColumn(i) when handCardToPl
 </details></think>
 
 ---
-
 
 Adding a click handler on each center card so that when a hand card is selected, clicking any card in a column places it at the bottom of that column.
 
@@ -14656,8 +14323,6 @@ I need to add role and title for the place target - when isPlaceTarget the card 
 
 
 
-
-
 ---
 
 <tool-use data-tool-type="write" data-tool-name="edit_file_v2">
@@ -14676,7 +14341,6 @@ Add a subtle style for center-card-place-target so when a hand card is selected,
 </details></think>
 
 ---
-
 
 Adding a cursor style for center cards when placing:
 
@@ -14733,7 +14397,6 @@ Done. Now when you have a card selected in hand, clicking any card in a column w
 
 ---
 
-
 Summary of changes:
 
 **1. Clicking a card in a column places the selected hand card**  
@@ -14751,6 +14414,20 @@ When you have a hand card selected (highlighted), clicking **any card** in a cen
 - Hovering a center card while one is selected for place shows: “Place selected card at bottom of this column (1 action)”.
 
 Flow: **click hand card (it highlights) → click any card in the target column → your card is placed at the bottom of that column.**
+
+---
+
+_**User**_
+
+When there is a match of 3 cards, I would like those cards to be visually highlighted somehow.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user wants the 3 (or 4 or 5) matching cards that form a Liminal match to be visually highlighted. So when findFirstMatch(centerColumns) returns a match, we need to know which </details></think>
 
 ---
 
