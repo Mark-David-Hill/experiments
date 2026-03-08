@@ -15,6 +15,7 @@ import './App.css'
 const HAND_SIZE = 5
 const STARTING_ENERGY = 3
 const DRAW_ACTIONS_PER_TURN = 5
+const MAX_CARDS_PER_COLUMN = 4
 
 // Bonus when the yōkai drawn from Liminal matches the color of the 3 spirits used to open it.
 const LIMINAL_COLOR_MATCH_BONUS = 'token' // grant 1 token of that color
@@ -199,13 +200,21 @@ function App() {
       const newCenterDecks = s.centerDecks.map((d, i) =>
         i === columnIndex ? restDeck : d
       )
-      const newCenterColumns = s.centerColumns.map((col, i) =>
-        i === columnIndex ? [card, ...col] : col
+      const col = s.centerColumns[columnIndex] || []
+      let newCol = [card, ...col]
+      let addedToDiscard = []
+      if (newCol.length > MAX_CARDS_PER_COLUMN) {
+        addedToDiscard = [newCol.pop()]
+        newCol = newCol.slice(0, MAX_CARDS_PER_COLUMN)
+      }
+      const newCenterColumns = s.centerColumns.map((c, i) =>
+        i === columnIndex ? newCol : c
       )
       return {
         ...s,
         centerDecks: newCenterDecks,
         centerColumns: newCenterColumns,
+        discard: [...s.discard, ...addedToDiscard],
         drawActionsRemaining: s.drawActionsRemaining - 1,
       }
     })
@@ -326,12 +335,19 @@ function App() {
         const card = srcCol[srcCol.length - 1]
         const newSourceCol = srcCol.slice(0, -1)
         const destCol = s.centerColumns[columnIndex] || []
+        let newDestCol = [...destCol, card]
+        let addedToDiscard = []
+        if (newDestCol.length > MAX_CARDS_PER_COLUMN) {
+          addedToDiscard = [newDestCol.pop()]
+          newDestCol = newDestCol.slice(0, MAX_CARDS_PER_COLUMN)
+        }
         const newCenterColumns = s.centerColumns.map((col, i) =>
-          i === src ? newSourceCol : i === columnIndex ? [...destCol, card] : col
+          i === src ? newSourceCol : i === columnIndex ? newDestCol : col
         )
         return {
           ...s,
           centerColumns: newCenterColumns,
+          discard: [...s.discard, ...addedToDiscard],
           drawActionsRemaining: s.drawActionsRemaining - 1,
           moveSourceColumn: null,
         }
@@ -369,11 +385,18 @@ function App() {
     setState((s) => {
       if (!s.handCardToPlace || s.drawActionsRemaining <= 0) return s
       const col = s.centerColumns[columnIndex] || []
+      let newCol = [...col, s.handCardToPlace]
+      let addedToDiscard = []
+      if (newCol.length > MAX_CARDS_PER_COLUMN) {
+        addedToDiscard = [newCol.pop()]
+        newCol = newCol.slice(0, MAX_CARDS_PER_COLUMN)
+      }
       return {
         ...s,
-        centerColumns: s.centerColumns.map((c, i) => (i === columnIndex ? [...c, s.handCardToPlace] : c)),
+        centerColumns: s.centerColumns.map((c, i) => (i === columnIndex ? newCol : c)),
         hand: s.hand.filter((c) => c.instanceId !== s.handCardToPlace.instanceId),
         handCardToPlace: null,
+        discard: [...s.discard, ...addedToDiscard],
         drawActionsRemaining: s.drawActionsRemaining - 1,
       }
     })
@@ -442,28 +465,18 @@ function App() {
   }, [])
 
   const endTurn = useCallback(() => {
-    setState((s) => {
-      const newDiscard = [...s.discard, ...s.hand, ...s.played]
-      const { drawn, newDeck, newDiscard: afterDraw } = drawFromPlayerPile(
-        s.deck,
-        newDiscard,
-        HAND_SIZE
-      )
-      return {
-        ...s,
-        phase: 'draw',
-        deck: newDeck,
-        hand: drawn,
-        discard: afterDraw,
-        played: [],
-        energy: STARTING_ENERGY,
-        centerDecks: s.centerDecks,
-        centerColumns: s.centerColumns,
-        liminalDeck: s.liminalDeck,
-        drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
-        moveSourceColumn: null,
-      }
-    })
+    setState((s) => ({
+      ...s,
+      phase: 'draw',
+      discard: [...s.discard, ...s.played],
+      played: [],
+      energy: STARTING_ENERGY,
+      centerDecks: s.centerDecks,
+      centerColumns: s.centerColumns,
+      liminalDeck: s.liminalDeck,
+      drawActionsRemaining: DRAW_ACTIONS_PER_TURN,
+      moveSourceColumn: null,
+    }))
   }, [])
 
   return (
@@ -560,21 +573,24 @@ function App() {
             <div
               className={`center-columns ${phase === 'play' ? 'center-columns-readonly' : ''}`}
             >
-              {Array.from({ length: NUM_CENTER_COLUMNS }, (_, i) => i).map((i) => (
+              {Array.from({ length: NUM_CENTER_COLUMNS }, (_, i) => i).map((i) => {
+                const colFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN
+                const canPlaceOrMoveHere = phase === 'draw' && !colFull && (handCardToPlace || (typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard))
+                return (
                 <div
                   key={i}
                   className={`center-column ${i === Math.floor(NUM_CENTER_COLUMNS / 2) ? 'center-column-middle' : ''} ${
-                    phase === 'draw' && handCardToPlace ? 'center-column-dest' : phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard ? 'center-column-dest' : ''
+                    phase === 'draw' && handCardToPlace && !colFull ? 'center-column-dest' : phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard && !colFull ? 'center-column-dest' : ''
                   } ${phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn === i ? 'center-column-source' : ''}`}
                   onClick={
-                    phase === 'draw' && handCardToPlace
+                    phase === 'draw' && handCardToPlace && !colFull
                       ? (e) => { e.stopPropagation(); placeHandCardOnColumn(i); }
-                      : phase === 'draw' && !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i
+                      : phase === 'draw' && !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !colFull
                         ? () => selectMoveSourceOrDest(i)
                         : undefined
                   }
-                  role={phase === 'draw' && (handCardToPlace || (typeof moveSourceColumn === 'number' && moveSourceColumn !== i)) ? 'button' : undefined}
-                  tabIndex={phase === 'draw' && typeof moveSourceColumn === 'number' ? 0 : undefined}
+                  role={canPlaceOrMoveHere ? 'button' : undefined}
+                  tabIndex={canPlaceOrMoveHere ? 0 : undefined}
                 >
                   {phase === 'draw' && (
                     <button
@@ -599,7 +615,7 @@ function App() {
                           !mustDrawFromLiminal &&
                           (centerColumns[i]?.length ?? 0) > 0
                         const isDiscardTarget = phase === 'draw' && !!pendingDiscardCenterCard
-                        const isPlaceTarget = phase === 'draw' && !!handCardToPlace
+                        const isPlaceTarget = phase === 'draw' && !!handCardToPlace && !colFull
                         const runLength = liminalMatch?.runLength ?? 0
                         const isInMatch =
                           liminalMatch &&
@@ -647,7 +663,8 @@ function App() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             <section className="liminal-deck">

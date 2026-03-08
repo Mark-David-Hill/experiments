@@ -14427,7 +14427,810 @@ _**Agent (model default, mode Agent)**_
 
 <think><details><summary>Thought Process</summary>
 
-The user wants the 3 (or 4 or 5) matching cards that form a Liminal match to be visually highlighted. So when findFirstMatch(centerColumns) returns a match, we need to know which </details></think>
+The user wants the 3 (or 4 or 5) matching cards that form a Liminal match to be visually highlighted. So when findFirstMatch(centerColumns) returns a match, we need to know which cards are part of that match and add a CSS class to those card elements so they stand out.
+
+Currently we have liminalMatch from findFirstMatch(centerColumns). The match can be:
+- horizontal: { type: 'horizontal', rowIndex: d, startColIndex: startCol, runLength }
+  - cards are at (startCol, d), (startCol+1, d), (startCol+2, d), and optionally (startCol+3, d), (startCol+4, d) for runLength 4 or 5
+- vertical: { type: 'vertical', colIndex, startIndex, runLength }
+  - cards are at (colIndex, startIndex), (colIndex, startIndex+1), (colIndex, startIndex+2), and optionally +3, +4 for runLength 4 or 5
+
+So we need to compute "is this card part of the current match?" for each card when rendering. We have liminalMatch in the component. For each card we render we have (column index i, card index idx). So we need a helper or inline check: isCardInMatch(i, idx) that returns true if this (i, idx) is part of liminalMatch.
+
+For horizontal match: column i is in [startColIndex, startColIndex+runLength-1] and row idx === rowIndex.
+For vertical match: column i === colIndex and idx is in [startIndex, startIndex+runLength-1].
+
+Then we add a class like "card-in-match" or "center-card-match" when isCardInMatch(i, idx), and add CSS to highlight (e.g. gold border or glow).
+</details></think>
+
+---
+
+
+Adding match highlighting: we'll determine which cards are part of the current match and add a highlight class.
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to add a check: is this (column i, row idx) part of liminalMatch? If horizontal: i >= startColIndex && i < startColIndex + runLength && idx === rowIndex. If vertical: i === colIndex && idx >= startIndex && idx < startIndex + runLength. Then add class "center-card-in-match" when true.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Now I need to add the CSS for `.center-card-in-match` in App.css. I'll look for where other center-card classes are styled.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "center-card-discard-target|center-card-place-target|\\.center-card",
+  "path": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css",
+  "contextAfter": 3,
+  "caseInsensitive": false
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "pattern": "center-card-discard-target|center-card-place-target|\\.center-card",
+  "path": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css",
+  "outputMode": "content",
+  "totalFiles": 1,
+  "totalMatches": 8,
+  "topFiles": [
+    {
+      "uri": "deck-building-prototype/src/App.css",
+      "matchCount": 32
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I'll add `.center-card-in-match` after `.center-card-place-target:hover` so it's with the other center-card state styles. I want a visible highlight: outline/glow or border that makes the matching set stand out (e.g. gold/amber to match the Liminal theme).
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.css</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Let me double-check the logic. For horizontal match we have startColIndex and rowIndex. So columns startColIndex, startColIndex+1, startColIndex+2 (and possibly +3, +4) at row rowIndex. So i >= startColIndex && i < startColIndex + runLength && idx === rowIndex is correct.
+
+For vertical we have colIndex, startIndex, runLength. So rows startIndex, startIndex+1, startIndex+2 (and possibly +3, +4) in column colIndex. So i === colIndex && idx >= startIndex && idx < startIndex + runLength is correct. Good.
+
+I'll run lints on the edited files.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+All good. I've implemented:
+1. For each center card, compute isInMatch using liminalMatch (horizontal: same row, columns in [startColIndex, startColIndex+runLength); vertical: same column, rows in [startIndex, startIndex+runLength)).
+2. Add class "center-card-in-match" when isInMatch.
+3. CSS: gold outline + soft glow and slight brightness so the matching set is clearly visible.
+
+The highlight will update automatically when the board or match changes because liminalMatch is derived from centerColumns on each render.
+</details></think>
+
+---
+
+
+Summary of changes:
+
+**1. `App.jsx` – mark cards that are part of the Liminal match**
+
+- For each center card we now compute `isInMatch` from `liminalMatch`:
+  - **Horizontal:** column index in `[startColIndex, startColIndex + runLength)` and row index equals `rowIndex`.
+  - **Vertical:** column index equals `colIndex` and row index in `[startIndex, startIndex + runLength)`.
+- The card’s `className` gets `center-card-in-match` when `isInMatch` is true.
+
+**2. `App.css` – style for matching cards**
+
+- `.center-card-in-match` uses a gold border and soft glow so the 3+ matching cards stand out:
+  - `box-shadow: 0 0 0 3px #e8c547, 0 0 12px rgba(232, 197, 71, 0.5)`
+  - `filter: brightness(1.15)`
+
+Whenever there’s a valid Liminal match (3+ same-color in a row or column), those cards are highlighted. The highlight updates with the board because it’s driven by `findFirstMatch(centerColumns)` on each render.
+
+---
+
+_**User**_
+
+Let's try making it so that there's a max of 4 cards per column, and if another card gets drawn from that column the 5th one (at the bottom) gets discarded.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user wants to limit each center column to a maximum of 4 cards. When a 5th card would be drawn (added to a column), the bottom card (the 5th one, or the one that would make it 5) should be discarded instead of being added - or perhaps they mean: when you draw from a column that already has 4 cards, the new card goes on and the current bottom card gets discarded. So the flow would be:
+
+- Max 4 cards per column.
+- When drawing from a column deck: if the column already has 4 cards, we add the drawn card and discard the current bottom card (the 4th one). So we'd have: remove bottom card (discard it), add new card on top... wait, "bottom" in the game might mean the visually bottom card which is the one you interact with. Let me check the code.
+
+Actually re-reading: "if another card gets drawn from that column the 5th one (at the bottom) gets discarded" - so when we draw a card from the deck into the column, if that would make 5 cards, we discard the 5th one - i.e. the one at the bottom (the oldest/lowest in the column). So the logic is:
+- When adding a drawn card to a column, if column length would become 5, first remove the bottom card (discard it), then add the new card. So we end up with 4 cards.
+
+I need to find where cards are drawn from center decks and added to center columns, and add this cap + discard logic.
+</details></think>
+
+---
+
+
+Adding a 4-card cap per column and discarding the bottom card when a draw would make five. Searching for where center-column draws happen.
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "centerColumns|center.*draw|drawFromCenter",
+  "path": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx",
+  "caseInsensitive": false
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "pattern": "centerColumns|center.*draw|drawFromCenter",
+  "path": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx",
+  "outputMode": "content",
+  "totalFiles": 1,
+  "totalMatches": 38,
+  "topFiles": [
+    {
+      "uri": "deck-building-prototype/src/App.jsx",
+      "matchCount": 38
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to look at:
+1. drawFromCenter (line 193) - when we draw from deck and add to column
+2. placeHandCardOnColumn (around 371) - when we place a hand card at bottom of column
+3. Maybe move - when we move a card from one column to another (line 324)
+
+For drawFromCenter: after adding the drawn card to the column, if column length > 4, we need to take the bottom card (last in array) and put it in discard. In the code, "bottom" visually is the last element of the array (idx === length - 1). So when we have 5 cards, we discard the last one (index 4). So we need to: when adding a card, if new column length would be 5, instead of [...col, drawnCard] we do [...col.slice(0, -1), drawnCard] and add the discarded card (col[col.length-1] or the one we're removing) to discard. Wait - if we're drawing a NEW card and adding it to the column, the column currently has 0-4 cards. If it has 4, we add the new card -> 5 cards. Then we remove the "5th one at the bottom" - the one at the bottom after adding is the one we just added... No. The user said "the 5th one (at the bottom) gets discarded". So the bottom card of the 5 is discarded. In our array, cards are stacked - index 0 is top (drawn from deck goes here), and the last index is "bottom". So when we have 5 cards, indices 0,1,2,3,4 - the "bottom" is index 4. So we discard the card at index 4 (the oldest one in the column, at the bottom). So new column = [drawnCard, ...col].slice(0, 4) and we add col[3] (the current bottom when col had 4) to discard. Actually: when we draw we do newCol = [drawnCard, ...col]. So if col had 4, newCol has 5. We want to keep 4 and discard one. The "5th at the bottom" - so we drop the last element of newCol (the bottom), and add it to discard. So: const newCol = [drawnCard, ...col]; const toDiscard = newCol.length > 4 ? newCol.pop() : null; then newCol is max 4, and if toDiscard we add to discard pile. Let me read the actual drawFromCenter code.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to:
+
+1. **drawFromCenter**: After building `newCenterColumns` with `[card, ...col]` for the column, if that column has length > 4, take the last card (bottom), add it to discard, and keep only the first 4 in the column.
+
+2. **placeHandCardOnColumn**: When placing a hand card, we do `[...c, s.handCardToPlace]`. If that makes length > 4, we need to drop the bottom (last) card and add it to discard. So new col = [...c, s.handCardToPlace].slice(0, 4), and discarded = [...c, s.handCardToPlace][4].
+
+3. **moveCardToColumn** (the one that moves from one column to another): We do `[...destCol, card]`. If that makes dest column length > 4, we need to drop the bottom and add to discard. So same logic.
+
+Let me define a constant MAX_CARDS_PER_COLUMN = 4 and apply the logic in all three places.
+</details></think>
+
+---
+
+
+Adding a 4-card max and applying it in three places: drawFromCenter, placeHandCardOnColumn, and move (when placing a card into another column).
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I'll add MAX_CARDS_PER_COLUMN = 4 after DRAW_ACTIONS_PER_TURN, then update drawFromCenter, moveCardToColumn, and placeHandCardOnColumn.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+All four edits applied. When we pop() we're removing the last element (the bottom card). So after adding the new card, if we have 5, the 5th (index 4, the bottom) gets popped and goes to discard. Good.
+
+Let me verify there are no other code paths that add to center columns - e.g. initial deal. Let me check if center columns get populated elsewhere.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+No linter errors. The logic is correct: we cap at 4 cards per column and when a 5th would be added (from draw, move, or place from hand), we pop the bottom card and add it to the discard pile.
+</details></think>
+
+---
+
+
+Summary of changes:
+
+**Constant**
+- `MAX_CARDS_PER_COLUMN = 4` added at the top of `App.jsx`.
+
+**1. Draw from center deck** (`drawFromCenter`)
+- After adding the drawn card to the column, if the column has more than 4 cards, the last (bottom) card is removed and pushed onto `discard`, and the column is kept at 4 cards.
+
+**2. Move card between columns** (`moveCardToColumn` / select-destination handler)
+- When moving a card onto another column, the destination column is updated the same way: if it would exceed 4 cards, the new bottom card is discarded and the column stays at 4.
+
+**3. Place hand card on column** (`placeHandCardOnColumn`)
+- When placing a hand card at the bottom of a column, the same rule applies: if the column would have 5 cards, the bottom one is discarded.
+
+So each center column is limited to 4 cards, and any time a 5th would be added (by draw, move, or place), that new bottom card is discarded instead.
+
+---
+
+_**User**_
+
+Great! Let's also make it so you can't add a card to the bottom of a column that already has the max number.
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+
+The user wants to prevent adding a card to a column that already has 4 cards (MAX_CARDS_PER_COLUMN). So we need to:
+
+1. When placing a hand card on a column - don't allow clicking/placing if that column already has 4 cards.
+2. When moving a card from one column to another - don't allow selecting a destination column that already has 4 cards.
+
+I need to find where the UI allows these actions and disable them when the column is full. Also we could prevent the action in the handlers as a safeguard.
+
+Let me search for where we show "place target" and "move destination" for center columns.
+</details></think>
+
+---
+
+
+Disabling placement and move-destination for columns that already have 4 cards.
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "center-card-place-target|center-column-dest|placeHandCardOnColumn|drawActionsRemaining",
+  "path": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx",
+  "contextBefore": 0,
+  "contextAfter": 1,
+  "caseInsensitive": false
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "pattern": "center-card-place-target|center-column-dest|placeHandCardOnColumn|drawActionsRemaining",
+  "path": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx",
+  "outputMode": "content",
+  "totalFiles": 1,
+  "totalMatches": 27,
+  "topFiles": [
+    {
+      "uri": "deck-building-prototype/src/App.jsx",
+      "matchCount": 52
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to see the full logic for when a column is a valid place target or move destination. The column gets `center-column-dest` when:
+- phase === 'draw' && handCardToPlace ? (any column) - we need to exclude columns that already have 4 cards
+- phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard - we need to exclude columns that already have 4 cards
+
+And for the click handlers:
+- When handCardToPlace is set, clicking a card in column i calls placeHandCardOnColumn(i). We should only show place target and allow click when (centerColumns[i]?.length ?? 0) < MAX_CARDS_PER_COLUMN.
+- When moveSourceColumn is set, clicking a card in column i (different from moveSourceColumn) moves the card there. We should only allow when (centerColumns[i]?.length ?? 0) < MAX_CARDS_PER_COLUMN.
+
+So I need to:
+1. Define a variable like columnFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN
+2. For place target: isPlaceTarget = phase === 'draw' && !!handCardToPlace && !columnFull
+3. For move dest: when we add 'center-column-dest' we need to exclude full columns. So the condition for being a valid move destination should also require !columnFull.
+4. In the onClick for place, we already have isPlaceTarget so that's enough.
+5. For move destination click - we need to not call the move handler when column is full. So when building the onClick, the "move to column" branch should only be active when !columnFull.
+
+Let me read the exact block where the column and card classes and onClick are set.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to:
+
+1. Add a check for column i being full: `(centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN`. I'll use a variable per column: `colFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN`.
+
+2. Column-level: Only add 'center-column-dest' when the column is not full. So:
+   - `phase === 'draw' && handCardToPlace && !colFull` for place-from-hand dest
+   - `phase === 'draw' && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !pendingDiscardCenterCard && !colFull` for move dest
+
+3. Column onClick: Only call placeHandCardOnColumn(i) when !colFull; only call selectMoveSourceOrDest(i) when !colFull.
+
+4. Card-level isPlaceTarget: only true when phase === 'draw' && !!handCardToPlace && !colFull (column not full). So we need colFull available in the column - we can compute it once per column in the map and use it in both the column div and the card map. So inside the column map we have `const colFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN`. Then use it in className and in the inner card map for isPlaceTarget. For the column's onClick we need to only trigger place or move when !colFull. So when handCardToPlace and colFull, we shouldn't trigger place; when moveSourceColumn set and colFull we shouldn't trigger move. So the column's onClick could be:
+   - if handCardToPlace && !colFull: placeHandCardOnColumn(i)
+   - else if moveSourceColumn !== i && !colFull: selectMoveSourceOrDest(i)
+   So we need to not call placeHandCardOnColumn when colFull, and not call selectMoveSourceOrDest when colFull. The easiest is to add && !colFull to both branches. So:
+   onClick={
+     phase === 'draw' && handCardToPlace && !colFull
+       ? (e) => { e.stopPropagation(); placeHandCardOnColumn(i); }
+       : phase === 'draw' && !pendingDiscardCenterCard && typeof moveSourceColumn === 'number' && moveSourceColumn !== i && !colFull
+         ? () => selectMoveSourceOrDest(i)
+         : undefined
+   }
+
+   We need colFull in scope - it's per column so we compute it at the start of the column map: const colFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN
+
+5. isPlaceTarget = phase === 'draw' && !!handCardToPlace && !colFull
+
+6. role and tabIndex for the column: we only want the column to be "button" when it's actually a valid target. So when handCardToPlace && colFull we shouldn't treat it as button (can't place). When moveSourceColumn and colFull we shouldn't. So the role can stay as is but the onClick already won't do anything when colFull. We should also not add center-column-dest class when colFull so the column doesn't look like a valid drop target. So:
+   - className for column: add center-column-dest only when (handCardToPlace && !colFull) || (moveSourceColumn !== i && !colFull && ...).
+
+Let me implement. I'll add `const colFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN` at the start of the column map callback.
+</details></think>
+
+---
+
+
+Adding a per-column full check and using it to disable place-target and move-destination when a column has 4 cards.
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+I need to fix the last replacement - the closing might have broken the structure. Let me check - we now have `)}` at the end but we changed the map to use a block with return, so the closing should be `);` then `})}` - i.e. `);` to close the return, `}` to close the arrow function block, `)` to close map. So `); })}` - let me look at what we have now.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+The structure looks correct. We have `return (` then the div, then `);` then `})}`. So the map callback is `(i) => { ... return ( ... ); })` and then `}`. Wait, the `})}` - the first `}` closes the arrow function block, the `)` closes the `.map(`, and the `}` - no, `.map(` takes one argument so it's `.map((i) => { ... })` so we need `});` to close map. So it should be `); })}` - that's return semicolon, close block, close paren of map, semicolon. So `); })`  - we have `);` and `})}`. So we have `})` which closes the map's argument (the arrow function). We need one more `)` to close the `.map(` call. So actually the original was `))}`  - one `)` to close the div, one `)` to close the map callback (implicit return), and `}` - no. Original: `</div> ))}` so `</div>` then `)` closes the JSX parent, then `)}` closes the map - so `)` closes the map callback return value and `}` closes the map. So the map was `(i) => ( <div>...</div> )` so we need `); })` for the new version - `);` closes the return statement, `}` closes the block, `)` closes the map. So we have `);` and `})}`. So `})` - the `}` closes the arrow function body and `)` closes the .map( - but that would mean we're missing one `)` for the .map( call. Let me look at the original again.
+
+Original: `</div>\n              ))}`  So after the div we have ` )  )  }  `. So that's close paren (for the JSX), close paren (for the map callback - it was an implicit return so `( <div> )` ), and `}` for the map. So the map is `.map((_, i) => i).map((i) => ( <div>...</div> ))` - no the first part is `Array.from(...).map((i) => (` so the map callback returns `( <div>...</div> )`. So we need `); })`  - the `);` ends the return statement (return ( ... );), then `}` ends the function body, then `)` ends the .map(. So the closing should be `); })}` - the `}` before `)` would close the arrow function. So we need `); })}` - but that would give us `});` at the end of .map(. So `.map((i) => { ... return (...); })`  so after `);` we need `}` then `)` so `});` - so `); })}`  gives us `);`  `}`  `)}` - so `)}` is `)` and `}`. So we have `);` then `})}`. So the `}` in `})}` closes the arrow function. The `)` in `})}` closes the .map(. So we get `); })`  - that's only one `)` before `}`. So we have `);`  `})`  `}`. So `});` - so the `)` closes the map call and `}` - no. `.map((i) => { return ( <div> ); })`  So to close: we need `);` to close return, `}` to close the arrow function body, `)` to close the .map( - so `); })`  So the replacement added ` )` and `})}` - so we now have ` )` newline `})}`. So the structure is `</div> ) )})`  - so `</div>` then `)` closes the opening `return (` - good. Then `})}` - the first `}` closes the arrow function block. Then `)` closes .map(. Then `}` - that extra `}` would be wrong. So we have `});` effectively - `)` `}` - so `)` closes map and `}` is extra. So we have one extra `}`. Let me look at the file again.
+
+Actually the original line was:
+`                </div>\n              ))}`
+So the div closes, then we have space and `))}`. So that's two closing parens and one closing brace. So the map was `.map((i) => ( ... ))` so the inner `)` closes the JSX expression and the outer `)` closes the arrow function's return. So one `)` for the return value (the JSX), one `)` for the arrow function. And `}` closes the .map( - no, `}` would close something. So `))` - first `)` closes the JSX fragment (the div), second `)` closes the arrow function return. And `}` - in JSX, `)}` is used to close a map: `{ something.map(x => ( ... ))}` so the `)` closes the return and `}` closes the `{`. So we have `))}` - so `)` `)` `}`. So the first `)` closes the div's parent (the return value of the arrow function). The second `)` closes the arrow function. The `}` closes the JSX expression `{ .map(...) }`. So the map callback returns `( <div>...</div> )` - one paren. So we need `) }` to close - the `)` closes the return expression and `}` closes the JSX. So the original is ` ))}` - so `)`  `)`  `}`. So one `)` for the div (the opening was `return (` or actually the callback was `(i) => (` so we have one `(` for the return. So `)` closes that. Then we need `)` to close the .map( - no. So the callback is `(i) => ( <div> </div> )` so we have `(` for the arrow function, then `(` for the return. So we need `)` to close the return and `)` to close the arrow function. So `))` is correct. Then `}` closes the surrounding `{ ... }`. So we have `))}`. Good.
+
+Now with my change we have a block body: `(i) => { const ...; return ( <div>...</div> ); })`. So we need `);` then `}` then `)` then `}`. So `); })}` - the `);` closes the return, `}` closes the arrow function body, `)` closes the .map( - wait, .map( doesn't need a closing paren for the method call - we have .map( (i) => { ... } ) so the `)` closes the .map( argument. So we need `); })` and then we need `}` to close the JSX `{ ... }`. So the full closing is `); })}` - so `);`  `}`  `)`  `}`. I replaced with ` )` and `})}`. So now we have ` )` (newline) `})}`. So that's ` )` then `})}`. So we have one `)` and then `}`  `)`  `}`. So the `)` closes the return. Then `}` closes the arrow function. Then `)` - extra? Then `}` closes the JSX. So we have `);` missing - we have ` )` not `);`. So we need `);` to end the return statement. Let me fix: change ` )` to ` );` and we have ` );` then `})}`. So the return is closed with `);`. Then `}` closes the arrow function. Then `)` closes the .map( invocation. Then `}` closes the JSX. So we need ` ); })}`. Let me check - currently we have:
+```
+                </div>
+              )
+              })}
+```
+So we have ` )` and `})}`. So the ` )` - that's space and one `)`. So we're missing the `;` after return. So the return statement is `return ( <div>...</div> )` and we need `;` to terminate it. So I'll add the semicolon: ` );` -> ` );` we already have one space. So change to ` );` so the line is `              );` and then `})}`. That would be correct. Let me do that.
+</details></think>
+
+---
+
+
+Fixing the map callback closing: the return must end with `);`.
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+Adding a safeguard in the state updaters so that even if someone triggers place or move, we don't add to a full column. Actually the UI now prevents it, but we could add a guard in placeHandCardOnColumn and in the move handler: if column already has 4 cards, don't add (or in place case, don't place - return s). Let me leave that as is unless we want defense in depth. The user only asked to not allow adding, which we did in the UI. I'll run lints.
+</details></think>
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "/Users/markhill/Documents/github/experiments/deck-building-prototype/src/App.jsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+
+All good. Adding a quick guard in the handlers would make the code robust if something else ever called them with a full column - but the user didn't ask for that. I'll leave as is.
+</details></think>
+
+---
+
+
+Summary of changes:
+
+**Per-column “full” check**
+- In the center-column map we now have `colFull = (centerColumns[i]?.length ?? 0) >= MAX_CARDS_PER_COLUMN` and `canPlaceOrMoveHere = phase === 'draw' && !colFull && (handCardToPlace || (moveSourceColumn set and not this column))`.
+
+**1. Column as place/move target**
+- `center-column-dest` is only applied when the column is not full: for hand placement when `handCardToPlace && !colFull`, and for move destination when `moveSourceColumn !== i && !colFull`.
+
+**2. Column click**
+- Place from hand: `placeHandCardOnColumn(i)` only runs when `!colFull`.
+- Move card: `selectMoveSourceOrDest(i)` only runs when `!colFull`.
+
+**3. Card-level place target**
+- `isPlaceTarget` is now `phase === 'draw' && !!handCardToPlace && !colFull`, so the “place target” highlight and click only appear on columns with fewer than 4 cards.
+
+**4. Role / tabIndex**
+- The column’s `role="button"` and `tabIndex={0}` only apply when `canPlaceOrMoveHere` (so not when the column is full).
+
+Result: columns that already have 4 cards no longer show as valid targets for placing from hand or moving a card, and clicking them does nothing.
 
 ---
 
