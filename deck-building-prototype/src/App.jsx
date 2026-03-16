@@ -16,6 +16,7 @@ const HAND_SIZE = 5
 const STARTING_ENERGY = 3
 const DRAW_ACTIONS_PER_TURN = 5
 const MAX_CARDS_PER_COLUMN = 4
+const CENTER_COLUMN_SLOTS = 4
 
 // Bonus when the yōkai drawn from Liminal matches the color of the 3 spirits used to open it.
 const LIMINAL_COLOR_MATCH_BONUS = 'token' // grant 1 token of that color
@@ -605,19 +606,23 @@ function App() {
                   )}
                   <div className="center-column-stack">
                     <div className="center-cards-column">
-                      {(centerColumns[i] || []).map((card, idx) => {
-                        const isBottom = idx === (centerColumns[i]?.length ?? 0) - 1
+                      {Array.from({ length: CENTER_COLUMN_SLOTS }, (_, idx) => {
+                        const card = centerColumns[i]?.[idx]
+                        const colLength = centerColumns[i]?.length ?? 0
+                        const isBottom = card && idx === colLength - 1
                         const canSelectAsSource =
                           phase === 'draw' &&
                           moveSourceColumn === null &&
                           !pendingDiscardCenterCard &&
                           drawActionsRemaining > 0 &&
                           !mustDrawFromLiminal &&
-                          (centerColumns[i]?.length ?? 0) > 0
-                        const isDiscardTarget = phase === 'draw' && !!pendingDiscardCenterCard
-                        const isPlaceTarget = phase === 'draw' && !!handCardToPlace && !colFull
+                          colLength > 0 &&
+                          isBottom
+                        const isDiscardTarget = phase === 'draw' && !!pendingDiscardCenterCard && !!card
+                        const isPlaceTarget = phase === 'draw' && !!handCardToPlace && !colFull && !!card
                         const runLength = liminalMatch?.runLength ?? 0
                         const isInMatch =
+                          card &&
                           liminalMatch &&
                           (liminalMatch.type === 'horizontal'
                             ? i >= liminalMatch.startColIndex &&
@@ -627,10 +632,23 @@ function App() {
                               i === liminalMatch.colIndex &&
                               idx >= liminalMatch.startIndex &&
                               idx < liminalMatch.startIndex + runLength)
+                        if (!card) {
+                          const isEmptyPlaceTarget = phase === 'draw' && !!handCardToPlace && !colFull && idx === colLength
+                          return (
+                            <div
+                              key={`empty-${i}-${idx}`}
+                              className={`center-card-slot center-card-slot-empty ${isEmptyPlaceTarget ? 'center-card-place-target' : ''}`}
+                              role={isEmptyPlaceTarget ? 'button' : undefined}
+                              title={isEmptyPlaceTarget ? 'Place selected card here (1 action)' : undefined}
+                              onClick={isEmptyPlaceTarget ? (e) => { e.stopPropagation(); placeHandCardOnColumn(i); } : undefined}
+                              aria-hidden={!isEmptyPlaceTarget}
+                            />
+                          )
+                        }
                         return (
                           <div
                             key={card.instanceId}
-                            className={`card center-card ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''} ${isPlaceTarget ? 'center-card-place-target' : ''} ${isInMatch ? 'center-card-in-match' : ''}`}
+                            className={`card center-card center-card-slot ${isBottom ? 'center-card-bottom' : ''} ${isBottom && canSelectAsSource ? 'center-card-moveable' : ''} ${isDiscardTarget ? 'center-card-discard-target' : ''} ${isPlaceTarget ? 'center-card-place-target' : ''} ${isInMatch ? 'center-card-in-match' : ''}`}
                             style={{
                               background: CARD_COLORS[card.color] ?? '#444',
                               color: getCardTextColor(card.color),

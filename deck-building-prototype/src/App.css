@@ -367,6 +367,30 @@ section h2 {
   padding: 0.3rem 0.6rem;
 }
 
+.center-card-slot {
+  min-width: 100px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.center-card-slot-empty {
+  min-height: 44px;
+  border: 2px dashed rgba(92, 90, 122, 0.4);
+  border-radius: 6px;
+  background: rgba(42, 39, 74, 0.3);
+}
+
+.center-card-slot-empty.center-card-place-target {
+  cursor: pointer;
+  border-color: rgba(201, 162, 39, 0.6);
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.center-card-slot-empty.center-card-place-target:hover {
+  border-color: #c9a227;
+  background: rgba(201, 162, 39, 0.15);
+}
+
 .center-card {
   background: linear-gradient(145deg, #3d3a5c 0%, #2a274a 100%);
   color: #e0e8ff;
